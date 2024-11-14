@@ -2,14 +2,12 @@ package com.travelbuddy.servicegroup.admin;
 
 import com.travelbuddy.persistence.domain.dto.servicegroup.ServiceGroupCreateRqstDto;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
-import com.travelbuddy.persistence.repository.ServicesByGroupRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.travelbuddy.common.paging.PageDto;
-
 import java.net.URI;
 
 
@@ -18,7 +16,6 @@ import java.net.URI;
 @RequestMapping("/api/admin/service-groups")
 public class ServiceGroupController {
     private final ServiceGroupService serviceGroupService;
-
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping

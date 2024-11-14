@@ -7,6 +7,7 @@ import com.travelbuddy.persistence.domain.entity.ServiceGroupByTypeEntity;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
 import com.travelbuddy.persistence.domain.entity.ServicesByGroupEntity;
 import com.travelbuddy.persistence.repository.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
     private final ServiceGroupByTypeRepository serviceGroupByTypeRepository;
     private final ServiceRepository serviceRepository;
     private final SiteTypeRepository siteTypeRepository;
+
 
     @Override
     public void updateServiceGroup(Integer serviceGroupId, ServiceGroupCreateRqstDto serviceGroupCreateRqstDto) {
@@ -44,7 +46,6 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
     public ServiceGroupEntity getServiceGroup(Integer id) {
         return serviceGroupRepository.findById(id).orElseThrow(() -> new NotFoundException("Service group with id " + id + " not found"));
     }
-
     @Override
     public void detachService(Integer id) {
         // Remove the record of the service group with the given id
