@@ -3,13 +3,17 @@ package com.travelbuddy.servicegroup.admin;
 import com.travelbuddy.common.exception.errorresponse.DataAlreadyExistsException;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.persistence.domain.dto.servicegroup.ServiceGroupCreateRqstDto;
+import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupByTypeEntity;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
 import com.travelbuddy.persistence.domain.entity.ServicesByGroupEntity;
 import com.travelbuddy.persistence.repository.*;
 
+import com.travelbuddy.sitetype.admin.SiteTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +21,7 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
     private final ServiceGroupRepository serviceGroupRepository;
     private final ServicesByGroupRepository servicesByGroupRepository;
     private final ServiceGroupByTypeRepository serviceGroupByTypeRepository;
-    private final ServiceRepository serviceRepository;
+    private final SiteTypeService siteTypeService;
     private final SiteTypeRepository siteTypeRepository;
 
 
@@ -46,6 +50,12 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
     public ServiceGroupEntity getServiceGroup(Integer id) {
         return serviceGroupRepository.findById(id).orElseThrow(() -> new NotFoundException("Service group with id " + id + " not found"));
     }
+
+    @Override
+    public List<GroupedSiteServicesRspnDto> getServiceGroups() {
+        return siteTypeService.getAssociatedServiceGroups();
+    }
+
     @Override
     public void detachService(Integer id) {
         // Remove the record of the service group with the given id

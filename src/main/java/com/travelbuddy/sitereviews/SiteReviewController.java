@@ -5,29 +5,112 @@ import com.travelbuddy.persistence.domain.dto.sitereview.MySiteReviewRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.SiteReviewCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.SiteReviewDetailRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.SiteReviewUpdateRqstDto;
-import jakarta.validation.Valid;
+import com.travelbuddy.persistence.domain.entity.BehaviorLogEntity;
+import com.travelbuddy.persistence.domain.entity.FileEntity;
+import com.travelbuddy.persistence.domain.entity.ReviewMediaEntity;
+import com.travelbuddy.persistence.repository.BehaviorLogRepository;
+import com.travelbuddy.persistence.repository.SiteReviewRepository;
+import com.travelbuddy.upload.cloud.StorageService;
+import com.travelbuddy.upload.cloud.dto.FileRspnDto;
+import com.travelbuddy.upload.cloud.dto.FileUploadRqstDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/site-reviews")
 public class SiteReviewController {
     private final SiteReviewService siteReviewService;
+    private final SiteReviewRepository siteReviewRepository;
+    private final StorageService storageService;
+    private final RequestUtils requestUtils;
+    private final ObjectMapper objectMapper;
+    private final BehaviorLogRepository behaviorLogRepository;
 
     @PostMapping
-    public ResponseEntity<Void> postSiteReview(@RequestBody @Valid SiteReviewCreateRqstDto siteReviewCreateRqstDto) {
-        siteReviewService.createSiteReview(siteReviewCreateRqstDto);
+    public ResponseEntity<Void> postSiteReview(@RequestParam("review") String review,
+                                               @RequestParam(value = "images", required = false) Optional<List<MultipartFile>> images,
+                                               @RequestParam(value = "videos", required = false) Optional<List<MultipartFile>> videos) {
+        SiteReviewCreateRqstDto siteReviewCreateRqstDto;
+        try {
+            siteReviewCreateRqstDto = objectMapper.readValue(review, SiteReviewCreateRqstDto.class);
+            BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                    .userId(requestUtils.getUserIdCurrentRequest())
+                    .timestamp(new Timestamp(System.currentTimeMillis()))
+                    .siteId(siteReviewCreateRqstDto.getSiteId())
+                    .behavior("POST_REVIEW")
+                    .build();
+            behaviorLogRepository.save(behaviorLog);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<ReviewMediaEntity> reviewMedias = new ArrayList<>();
+
+        images.ifPresent(imageList -> {
+            for (MultipartFile image : imageList) {
+                try {
+                    FileUploadRqstDto fileUploadRqstDto = FileUploadRqstDto.builder()
+                            .inputStream(image.getInputStream())
+                            .folder("site-reviews")
+                            .mimeType(image.getContentType())
+                            .extension(FilenameUtils.getExtension(image.getOriginalFilename()).orElse(null))
+                            .build();
+
+                    FileRspnDto uploadedFile = storageService.uploadFile(fileUploadRqstDto);
+
+                    reviewMedias.add(ReviewMediaEntity.builder()
+                            .media(FileEntity.builder()
+                                    .id(uploadedFile.getId())
+                                    .url(uploadedFile.getUrl())
+                                    .build())
+                            .mediaType(MediaTypeEnum.IMAGE.name())
+                            .build());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        videos.ifPresent(videoList -> {
+            for (MultipartFile video : videoList) {
+                try {
+                    FileUploadRqstDto fileUploadRqstDto = FileUploadRqstDto.builder()
+                            .inputStream(video.getInputStream())
+                            .folder("site-reviews")
+                            .mimeType(video.getContentType())
+                            .extension(FilenameUtils.getExtension(video.getOriginalFilename()).orElse(null))
+                            .build();
+
+                FileRspnDto uploadedFile = storageService.uploadFile(fileUploadRqstDto);
+
+                reviewMedias.add(ReviewMediaEntity.builder()
+                        .media(FileEntity.builder()
+                                .id(uploadedFile.getId())
+                                .url(uploadedFile.getUrl())
+                                .build())
+                        .mediaType(MediaTypeEnum.VIDEO.name())
+                        .build());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+
+        siteReviewService.createSiteReview(siteReviewCreateRqstDto, reviewMedias);
         return ResponseEntity.created(URI.create("/api/site-reviews/" + siteReviewCreateRqstDto.getSiteId())).build();
     }
 
     @GetMapping("/{reviewId}")
     public ResponseEntity<Object> getSiteReview(@PathVariable int reviewId) {
         SiteReviewDetailRspnDto siteReview = siteReviewService.getSiteReviewById(reviewId);
-
         return ResponseEntity.ok(siteReview);
     }
 
@@ -49,12 +132,26 @@ public class SiteReviewController {
     @PostMapping("/{reviewId}/like")
     public ResponseEntity<Void> likeSiteReview(@PathVariable int reviewId) {
         siteReviewService.likeSiteReview(reviewId);
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .userId(requestUtils.getUserIdCurrentRequest())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .siteId(siteReviewRepository.getSiteIdById(reviewId))
+                .behavior("LIKE_REVIEW")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{reviewId}/dislike")
     public ResponseEntity<Void> dislikeSiteReview(@PathVariable int reviewId) {
         siteReviewService.dislikeSiteReview(reviewId);
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .userId(requestUtils.getUserIdCurrentRequest())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .siteId(siteReviewRepository.getSiteIdById(reviewId))
+                .behavior("DISLIKE_REVIEW")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok().build();
     }
 

@@ -1,10 +1,14 @@
 package com.travelbuddy.servicegroup.admin;
 import com.travelbuddy.persistence.domain.dto.servicegroup.ServiceGroupCreateRqstDto;
+import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
+
+import java.util.List;
 
 public interface ServiceGroupService {
     Integer createServiceGroup(ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
     ServiceGroupEntity getServiceGroup(Integer id);
+    List<GroupedSiteServicesRspnDto> getServiceGroups();
     void updateServiceGroup(Integer serviceGroupId, ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
 
     void associateService(Integer serviceGroupId, Integer serviceId);

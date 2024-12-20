@@ -21,4 +21,5 @@ public interface SiteReviewRepository extends JpaRepository<SiteReviewEntity, Lo
     boolean existsBySiteIdAndUserId(int siteId, int userId);
 
     Page<SiteReviewEntity> findAllByUserIdAndCommentContainingIgnoreCase(int userId, String reviewSearch, Pageable pageable);
+    int getSiteIdById(int reviewId);
 }

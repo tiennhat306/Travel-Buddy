@@ -13,6 +13,7 @@ import com.travelbuddy.persistence.repository.AspectsByTypeRepository;
 import com.travelbuddy.persistence.repository.SiteTypeRepository;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeRspnDto;
+import com.travelbuddy.servicegroup.admin.ServiceGroupService;
 import jakarta.validation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -30,6 +31,7 @@ public class SiteTypeController {
     private final SiteTypeRepository siteTypeRepository;
     private final AspectsByTypeService aspectsByTypeService;
     private final AspectsByTypeRepository aspectsByTypeRepository;
+    private final ServiceGroupService serviceGroupService;
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping
@@ -38,6 +40,9 @@ public class SiteTypeController {
             throw new DataAlreadyExistsException("Site type already exists");
 
         Integer siteTypeId = siteTypeService.createSiteType(siteTypeCreateRqstDto);
+        for (Integer serviceGroupId : siteTypeCreateRqstDto.getServiceGroups()) {
+            serviceGroupService.associateType(serviceGroupId, siteTypeId);
+        }
         return ResponseEntity.created(URI.create("/admin/api/siteTypes/" + siteTypeId)).build();
     }
 

@@ -9,6 +9,7 @@ import com.travelbuddy.mapper.SiteTypeMapper;
 import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
 import com.travelbuddy.persistence.repository.ServiceGroupByTypeRepository;
+import com.travelbuddy.persistence.repository.ServiceGroupRepository;
 import com.travelbuddy.persistence.repository.ServicesByGroupRepository;
 import com.travelbuddy.persistence.repository.SiteTypeRepository;
 import com.travelbuddy.common.constants.DualStateEnum;
@@ -34,6 +35,7 @@ public class SiteTypeServiceImp implements SiteTypeService {
     private final ServicesByGroupRepository servicesByGroupRepository;
     private final SiteTypeMapper siteTypeMapper;
     private final PageMapper pageMapper;
+    private final ServiceGroupRepository serviceGroupRepository;
 
     @Override
     public Integer createSiteType(SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
@@ -85,12 +87,34 @@ public class SiteTypeServiceImp implements SiteTypeService {
     }
 
     @Override
+    public List<GroupedSiteServicesRspnDto> getAssociatedServiceGroups() {
+        List<ServiceGroupEntity> serviceGroupEntities = serviceGroupRepository.findAll();
+        List<GroupedSiteServicesRspnDto> groupedSiteServices = new ArrayList<>();
+        for (ServiceGroupEntity serviceGroupEntity : serviceGroupEntities) {
+            GroupedSiteServicesRspnDto groupedSiteServicesRspnDtoItem = new GroupedSiteServicesRspnDto();
+            List<ServiceEntity> servicesInGroupList = servicesByGroupRepository.findAllByServiceGroupId(serviceGroupEntity.getId())
+                    .orElseThrow(() -> new NotFoundException("Service group not found"))
+                    .stream()
+                    .map(ServicesByGroupEntity::getServiceEntity)
+                    .toList();
+            groupedSiteServicesRspnDtoItem.setServiceGroup(serviceGroupEntity);
+            groupedSiteServicesRspnDtoItem.setServices(servicesInGroupList);
+            groupedSiteServices.add(groupedSiteServicesRspnDtoItem);
+        }
+        return groupedSiteServices;
+    }
+
+    @Override
     public void updateSiteType(int siteTypeId, SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
         SiteTypeEntity siteType = siteTypeRepository.findById(siteTypeId)
                 .orElseThrow(() -> new NotFoundException("Site type not found"));
 
-        if (siteTypeRepository.existsByTypeNameIgnoreCase(siteTypeCreateRqstDto.getSiteTypeName()))
+//        if (siteTypeRepository.existsByTypeNameIgnoreCase(siteTypeCreateRqstDto.getSiteTypeName()))
+//            throw new DataAlreadyExistsException("Site type already exists");
+        List<SiteTypeEntity> types = siteTypeRepository.findAllByTypeNameIgnoreCase(siteTypeCreateRqstDto.getSiteTypeName()).orElse(new ArrayList<SiteTypeEntity>());
+        if (types.size() != 0 && types.get(0).getId() != siteTypeId) {
             throw new DataAlreadyExistsException("Site type already exists");
+        }
 
         DualStateEnum dualState;
         try {

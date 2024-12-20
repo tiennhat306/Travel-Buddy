@@ -2,7 +2,11 @@ package com.travelbuddy.site.user;
 
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.persistence.domain.dto.site.*;
+import com.travelbuddy.persistence.domain.entity.BehaviorLogEntity;
+import com.travelbuddy.persistence.domain.entity.FileEntity;
 import com.travelbuddy.persistence.domain.entity.SiteEntity;
+import com.travelbuddy.persistence.domain.entity.SiteMediaEntity;
+import com.travelbuddy.persistence.repository.BehaviorLogRepository;
 import com.travelbuddy.persistence.repository.SiteApprovalRepository;
 import com.travelbuddy.persistence.repository.SiteRepository;
 import com.travelbuddy.siteversion.user.SiteVersionService;
@@ -17,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.util.*;
 
 @RestController
@@ -29,6 +34,9 @@ public class SiteController {
     private final SiteRepository siteRepository;
     private final UserService userService;
     private final SiteReviewService siteReviewService;
+    private final StorageService storageService;
+    private final ObjectMapper objectMapper;
+    private final BehaviorLogRepository behaviorLogRepository;
 
     @PostMapping
     public ResponseEntity<Object> postSite(@RequestBody @Valid SiteCreateRqstDto siteCreateRqstDto) {
@@ -47,6 +55,13 @@ public class SiteController {
         // Success block
         Integer siteVersionId = latestApprovedVersionId.get();
         SiteRepresentationDto representationDto = siteVersionService.getSiteVersionView(siteVersionId);
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
+                .siteId(siteId)
+                .behavior("VIEW_SITE")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok(representationDto);
     }
 
@@ -98,19 +113,39 @@ public class SiteController {
     public ResponseEntity<Object> getSiteReviews(@PathVariable int siteId,
                                                  @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
         PageDto<SiteReviewRspnDto> siteTypesPage = siteReviewService.getAllSiteReviews(siteId, page);
-
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
+                .siteId(siteId)
+                .behavior("READ_REVIEWS")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok(siteTypesPage);
     }
 
     @PostMapping("/{siteId}/like")
     public ResponseEntity<Object> likeSite(@PathVariable int siteId) {
         siteService.likeSite(siteId);
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
+                .siteId(siteId)
+                .behavior("LIKE_SITE")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{siteId}/dislike")
     public ResponseEntity<Object> dislikeSite(@PathVariable int siteId) {
         siteService.dislikeSite(siteId);
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
+                .siteId(siteId)
+                .behavior("DISLIKE_SITE")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok().build();
     }
 
@@ -123,14 +158,20 @@ public class SiteController {
         }
 
         PageDto<SiteBasicInfoRspnDto> siteSearchRspnDto = siteService.searchSites(siteSearch, page);
-
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
+                .siteId(null)
+                .behavior("SEARCH_SITE")
+                .extraInfo(siteSearch)
+                .build();
+        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok(siteSearchRspnDto);
     }
 
     @GetMapping("/discover")
     public ResponseEntity<Object> discoverSites(@RequestParam(name = "page", required = false, defaultValue = "1") int page) {
         PageDto<SiteBasicInfoRspnDto> siteSearchRspnDto = siteService.discoverSites(page);
-
         return ResponseEntity.ok(siteSearchRspnDto);
     }
 }
