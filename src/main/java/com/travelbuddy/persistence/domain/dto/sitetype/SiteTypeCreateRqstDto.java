@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class SiteTypeCreateRqstDto {
@@ -12,4 +14,6 @@ public class SiteTypeCreateRqstDto {
 
     @NotBlank
     private String mode; // This resembles ENUM(ATTRACTION, AMENITY, DUAL)
+
+    private List<Integer> serviceGroups;
 }

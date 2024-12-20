@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SiteTypeRepository extends JpaRepository<SiteTypeEntity, Integer> {
@@ -15,5 +16,5 @@ public interface SiteTypeRepository extends JpaRepository<SiteTypeEntity, Intege
 
     Optional<Integer> findIdByTypeNameIgnoreCase(String typeName);
 
-
+    Optional<List<SiteTypeEntity>> findAllByTypeNameIgnoreCase(String typeName);
 }

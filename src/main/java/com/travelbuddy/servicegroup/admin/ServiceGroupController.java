@@ -1,7 +1,9 @@
 package com.travelbuddy.servicegroup.admin;
 
 import com.travelbuddy.persistence.domain.dto.servicegroup.ServiceGroupCreateRqstDto;
+import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
+import com.travelbuddy.persistence.repository.ServiceRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import com.travelbuddy.common.paging.PageDto;
 import java.net.URI;
+import java.util.List;
 
 
 @RestController
@@ -16,6 +19,7 @@ import java.net.URI;
 @RequestMapping("/api/admin/service-groups")
 public class ServiceGroupController {
     private final ServiceGroupService serviceGroupService;
+    private final ServiceRepository serviceRepository;
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping
@@ -29,6 +33,12 @@ public class ServiceGroupController {
     public ResponseEntity<Object> getServiceGroup(@PathVariable Integer id) {
         ServiceGroupEntity serviceGroupEntity = serviceGroupService.getServiceGroup(id);
         return ResponseEntity.ok(serviceGroupEntity);
+    }
+
+    @GetMapping()
+    public ResponseEntity<Object> getServiceGroups() {
+        List<GroupedSiteServicesRspnDto> serviceGroupEntities = serviceGroupService.getServiceGroups();
+        return ResponseEntity.ok(serviceGroupEntities);
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
@@ -83,7 +93,11 @@ public class ServiceGroupController {
             serviceGroupService.associateType(id, typeId);
         } else {
             remove = true;
-            serviceGroupService.detachType(id);
+            if (typeId != null) {
+                serviceGroupService.detachType(id, typeId);
+            } else {
+                serviceGroupService.detachType(id);
+            }
         }
         return ResponseEntity.ok().build();
     }
