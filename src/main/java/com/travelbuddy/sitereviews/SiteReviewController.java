@@ -1,6 +1,11 @@
 package com.travelbuddy.sitereviews;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.travelbuddy.common.constants.MediaTypeEnum;
 import com.travelbuddy.common.paging.PageDto;
+import com.travelbuddy.common.utils.FilenameUtils;
+import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.persistence.domain.dto.sitereview.MySiteReviewRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.SiteReviewCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.SiteReviewDetailRspnDto;
@@ -13,10 +18,13 @@ import com.travelbuddy.persistence.repository.SiteReviewRepository;
 import com.travelbuddy.upload.cloud.StorageService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import com.travelbuddy.upload.cloud.dto.FileUploadRqstDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -104,7 +112,7 @@ public class SiteReviewController {
             }
         });
 
-        siteReviewService.createSiteReview(siteReviewCreateRqstDto, reviewMedias);
+        siteReviewService.createSiteReview(siteReviewCreateRqstDto);
         return ResponseEntity.created(URI.create("/api/site-reviews/" + siteReviewCreateRqstDto.getSiteId())).build();
     }
 
@@ -116,7 +124,7 @@ public class SiteReviewController {
 
     @PutMapping("/{reviewId}")
     public ResponseEntity<Void> updateSiteReview(@PathVariable int reviewId,
-                                                @RequestBody @Valid  SiteReviewUpdateRqstDto siteReviewUpdateRqstDto) {
+                                                @RequestBody @Valid SiteReviewUpdateRqstDto siteReviewUpdateRqstDto) {
 
 
         siteReviewService.updateSiteReview(reviewId, siteReviewUpdateRqstDto);
