@@ -1,6 +1,7 @@
 package com.travelbuddy.persistence.repository;
 
 import com.travelbuddy.common.constants.ApprovalStatusEnum;
+import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.persistence.domain.entity.SiteVersionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +34,9 @@ public interface SiteVersionRepository extends JpaRepository<SiteVersionEntity, 
                                                             @Param("degRadius") double degRadius);
 
     Page<SiteVersionEntity> findAll(Specification<SiteVersionEntity> spec, Pageable pageable);
+
+    // Get all site versions by owner id
+    @Query("SELECT sv FROM SiteVersionEntity sv JOIN SiteEntity s ON sv.siteId = s.id WHERE s.ownerId = :ownerId")
+    Page<SiteVersionEntity> findAllByOwnerId(Integer ownerId, Pageable pageable);
+
 }

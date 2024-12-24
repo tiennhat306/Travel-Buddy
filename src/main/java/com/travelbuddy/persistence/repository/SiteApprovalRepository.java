@@ -21,4 +21,5 @@ public interface SiteApprovalRepository extends JpaRepository<SiteApprovalEntity
             "LIMIT 1")
     Optional<Integer> findLatestApprovedSiteVersionIdBySiteId(@Param("siteId") Integer siteId);
     Page<SiteApprovalEntity> findAllByStatus(ApprovalStatusEnum status, Pageable pageable);
+    SiteApprovalEntity findBySiteVersionId(Integer siteVersionId);
 }

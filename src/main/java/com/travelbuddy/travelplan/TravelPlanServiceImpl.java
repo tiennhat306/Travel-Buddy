@@ -327,7 +327,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         travelPlanRspnDto.setDescription(travelPlanEntity.getDescription());
         travelPlanRspnDto.setStartTime(String.valueOf(travelPlanEntity.getStartTime()));
         travelPlanRspnDto.setEndTime(String.valueOf(travelPlanEntity.getEndTime()));
-        travelPlanRspnDto.setCoverUrl(travelPlanEntity.getCover().getUrl());
+        travelPlanRspnDto.setCoverUrl(travelPlanEntity.getCover() != null ? travelPlanEntity.getCover().getUrl() : null);
 
         List<TravelPlanSiteRspnDto> sites = new ArrayList<>();
         for (SiteEntity siteEntity : travelPlanEntity.getSiteEntities()) {
@@ -378,7 +378,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                     travelPlanBasicRspnDto.setDescription(travelPlanEntity.getDescription());
                     travelPlanBasicRspnDto.setStartTime(String.valueOf(travelPlanEntity.getStartTime()));
                     travelPlanBasicRspnDto.setEndTime(String.valueOf(travelPlanEntity.getEndTime()));
-                    travelPlanBasicRspnDto.setCoverUrl(travelPlanEntity.getCover().getUrl());
+                    travelPlanBasicRspnDto.setCoverUrl(travelPlanEntity.getCover() != null ? travelPlanEntity.getCover().getUrl() : null);
 
                     return travelPlanBasicRspnDto;
                 })

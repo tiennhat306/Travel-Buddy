@@ -176,4 +176,14 @@ public class SiteController {
         PageDto<SiteBasicInfoRspnDto> siteSearchRspnDto = siteService.discoverSites(page);
         return ResponseEntity.ok(siteSearchRspnDto);
     }
+
+    @GetMapping("/my-sites")
+    public ResponseEntity<Object> getMySites(@RequestParam(name = "page", required = false, defaultValue = "1") int page) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Integer userId = userService.getUserIdByEmailOrUsername(username);
+
+        PageDto<SiteStatusRspndDto> siteSearchRspnDto = siteVersionService.getSiteStatuses(page, userId);
+
+        return ResponseEntity.ok(siteSearchRspnDto);
+    }
 }

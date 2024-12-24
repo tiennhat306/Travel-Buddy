@@ -11,4 +11,6 @@ public interface SiteMediaRepository extends JpaRepository<SiteMediaEntity, Long
     void deleteBySiteId(Integer siteId);
 
     List<SiteMediaEntity> findAllBySiteId(Integer siteId);
+    // Get the first SiteMediaEntity by siteId and mediaType
+    SiteMediaEntity findFirstBySiteIdAndMediaType(Integer siteId, String mediaType);
 }

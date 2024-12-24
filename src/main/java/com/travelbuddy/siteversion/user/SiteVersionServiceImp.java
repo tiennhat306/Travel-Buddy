@@ -2,6 +2,8 @@ package com.travelbuddy.siteversion.user;
 
 import com.travelbuddy.common.constants.ReactionTypeEnum;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
+import com.travelbuddy.common.mapper.PageMapper;
+import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.fee.FeeService;
 import com.travelbuddy.persistence.domain.dto.site.*;
@@ -13,6 +15,7 @@ import com.travelbuddy.persistence.repository.*;
 import com.travelbuddy.service.admin.ServiceService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,6 +24,7 @@ import java.util.List;
 
 import static com.travelbuddy.common.constants.GeographicLimitConstants.MAX_DEG_RADIUS;
 import static com.travelbuddy.common.constants.GeographicLimitConstants.MIN_DEG_RADIUS;
+import static com.travelbuddy.common.constants.PaginationLimitConstants.MY_SITE_LIMIT;
 
 @Service
 @Transactional
@@ -38,6 +42,8 @@ public class SiteVersionServiceImp implements SiteVersionService {
     private final SiteMediaRepository siteMediaRepository;
     private final SiteReviewRepository siteReviewRepository;
     private final FeeService feeService;
+    private final SiteApprovalRepository siteApprovalRepository;
+    private final PageMapper pageMapper;
 
     @Override
     @Transactional
@@ -226,5 +232,27 @@ public class SiteVersionServiceImp implements SiteVersionService {
             return null;
         }
         return siteReactionEntity.getReactionType();
+    }
+
+    @Override
+    public PageDto<SiteStatusRspndDto> getSiteStatuses(int page, int userId) {
+        Pageable pageable = PageRequest.of(page - 1, MY_SITE_LIMIT, Sort.by("createdAt"));
+        /*List<SiteVersionEntity> siteVersions = siteVersionRepository.findAllByOwnerId(userId);
+        List<SiteStatusRspndDto> siteStatuses = new ArrayList<>();
+        for (SiteVersionEntity siteVersion : siteVersions) {
+            SiteApprovalEntity siteApproval = siteApprovalRepository.findBySiteVersionId(siteVersion.getId());
+            SiteMediaEntity siteMedia = siteMediaRepository.findFirstBySiteIdAndMediaType(siteVersion.getSiteId(), "IMAGE");
+            siteStatuses.add(new SiteStatusRspndDto(siteVersion, siteApproval, siteMedia));
+        }*/
+        Page<SiteVersionEntity> siteVersions = siteVersionRepository.findAllByOwnerId(userId, pageable);
+        List<SiteStatusRspndDto> siteStatuses = siteVersions.stream()
+                .map(siteVersion -> {
+                    SiteApprovalEntity siteApproval = siteApprovalRepository.findBySiteVersionId(siteVersion.getId());
+                    SiteMediaEntity siteMedia = siteMediaRepository.findFirstBySiteIdAndMediaType(siteVersion.getSiteId(), "IMAGE");
+                    return new SiteStatusRspndDto(siteVersion, siteApproval, siteMedia);
+                })
+                .toList();
+        Page<SiteStatusRspndDto> siteStatusesPage = new PageImpl<>(siteStatuses, pageable, siteVersions.getTotalElements());
+        return pageMapper.toPageDto(siteStatusesPage);
     }
 }
