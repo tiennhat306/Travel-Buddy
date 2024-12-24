@@ -21,7 +21,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -72,8 +74,8 @@ public class SiteTypeController {
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping("/aspects")
     public ResponseEntity<Object> postAspect(@RequestBody @Valid AspectsByTypeCreateRqstDto aspectsByTypeCreateRqstDto) {
-        Integer newAspectByType = aspectsByTypeService.addNewAspect(aspectsByTypeCreateRqstDto.getTypeId(), aspectsByTypeCreateRqstDto.getAspectName());
-        return ResponseEntity.created(URI.create("/admin/api/site-types/aspects/" + newAspectByType)).build();
+        aspectsByTypeService.addNewAspects(aspectsByTypeCreateRqstDto.getTypeId(), aspectsByTypeCreateRqstDto.getAspectNames());
+        return ResponseEntity.created(URI.create("/admin/api/siteTypes/aspects")).build();
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
@@ -87,5 +89,14 @@ public class SiteTypeController {
             throw new DataAlreadyExistsException("Aspect already exists");
         aspectsByTypeService.updateAspectName(aspectsByTypeEditRqstDto.getId(), aspectsByTypeEditRqstDto.getNewAspectName());
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
+    @DeleteMapping("/aspects")
+    public ResponseEntity<Object> deleteAspect(@RequestBody List<Integer> aspectIds) {
+        List<AspectsByTypeEntity> aspectsByType = aspectsByTypeService.deleteAspectsByIds(aspectIds);
+        Map<String, Object> response = new HashMap<>();
+        response.put("failed", aspectsByType);
+        return ResponseEntity.ok(response);
     }
 }

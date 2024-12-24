@@ -5,6 +5,7 @@ import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeRspnDto;
 import com.travelbuddy.persistence.domain.entity.AspectsByTypeEntity;
 import com.travelbuddy.persistence.domain.entity.SiteTypeEntity;
 import com.travelbuddy.persistence.repository.AspectsByTypeRepository;
+import com.travelbuddy.persistence.repository.FeeRepository;
 import com.travelbuddy.persistence.repository.SiteTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 public class AspectsByTypeServiceImp implements AspectsByTypeService {
     private final AspectsByTypeRepository aspectsByTypeRepository;
     private final SiteTypeRepository siteTypeRepository;
+    private final FeeRepository feeRepository;
 
     @Override
     public Integer addNewAspect(Integer typeId, String aspectName) {
@@ -33,6 +35,17 @@ public class AspectsByTypeServiceImp implements AspectsByTypeService {
             throw new NotFoundException("Aspect with id " + aspectId + " not found");
         }
         aspectsByTypeRepository.deleteById(aspectId);
+    }
+
+    @Override
+    public List<AspectsByTypeEntity> deleteAspectsByIds(List<Integer> aspectIds) {
+        List<AspectsByTypeEntity> failed = new ArrayList<AspectsByTypeEntity>();
+        for (Integer aspectId : aspectIds) {
+            if (feeRepository.existsByAspectId(aspectId)) {
+                failed.add(aspectsByTypeRepository.findById(aspectId).get());
+            } else deleteAspectById(aspectId);
+        }
+        return failed;
     }
 
     @Override
@@ -77,5 +90,12 @@ public class AspectsByTypeServiceImp implements AspectsByTypeService {
             viewAspects.add(viewAspectByTypeRspndDto);
         }
         return viewAspects;
+    }
+
+    @Override
+    public void addNewAspects(Integer typeId, List<String> aspectNames) {
+        for (String aspectName : aspectNames) {
+            addNewAspect(typeId, aspectName);
+        }
     }
 }

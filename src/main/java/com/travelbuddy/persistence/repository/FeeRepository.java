@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface FeeRepository extends JpaRepository<FeeEntity, Integer> {
     Optional<List<FeeEntity>> findAllBySiteVersionId(Integer siteVersionId);
+    // return if there is a record with AspectID in fee
+    boolean existsByAspectId(Integer aspectId);
 }
