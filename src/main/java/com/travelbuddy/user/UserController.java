@@ -6,6 +6,7 @@ import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.FilenameUtils;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.persistence.domain.dto.account.user.*;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import com.travelbuddy.upload.cloud.StorageService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import com.travelbuddy.upload.cloud.dto.FileUploadRqstDto;
@@ -30,6 +31,7 @@ public class UserController {
     private final RequestUtils requestUtils;
     private final StorageService storageService;
     private final ObjectMapper objectMapper;
+    private final SystemLogService systemLogService;
 
     @GetMapping("/detail")
     public ResponseEntity<UserDetailRspnDto> getUserDetail() {
@@ -42,7 +44,7 @@ public class UserController {
     public ResponseEntity<Void> changePassword(@RequestBody @Valid ChgPasswordRqstDto chgPasswordRqstDto) {
         int userId = requestUtils.getUserIdCurrentRequest();
         userService.changePassword(userId, chgPasswordRqstDto);
-
+        systemLogService.logInfo(userId + " changed password");
         return ResponseEntity.noContent().build();
     }
 
@@ -104,7 +106,7 @@ public class UserController {
     public ResponseEntity<Void> unactivated() {
         int userId = requestUtils.getUserIdCurrentRequest();
         userService.unactivated(userId);
-
+        systemLogService.logInfo(userId + " unactivated account");
         return ResponseEntity.noContent().build();
     }
 

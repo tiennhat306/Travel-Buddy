@@ -4,6 +4,7 @@ import com.travelbuddy.persistence.domain.dto.servicegroup.ServiceGroupCreateRqs
 import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
 import com.travelbuddy.persistence.repository.ServiceRepository;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,13 @@ import java.util.List;
 @RequestMapping("/api/admin/service-groups")
 public class ServiceGroupController {
     private final ServiceGroupService serviceGroupService;
-    private final ServiceRepository serviceRepository;
+    private final SystemLogService systemLogService;
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping
     public ResponseEntity<Object> createServiceGroup(@RequestBody @Valid ServiceGroupCreateRqstDto serviceCreateRqstDto) {
         Integer id = serviceGroupService.createServiceGroup(serviceCreateRqstDto);
+        systemLogService.logInfo("Service group " + id + " created");
         return ResponseEntity.ok(URI.create("/api/admin/service-groups/" + id));
     }
 
@@ -45,6 +47,7 @@ public class ServiceGroupController {
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateServiceGroup(@PathVariable Integer id, @RequestBody @Valid ServiceGroupCreateRqstDto serviceCreateRqstDto) {
         serviceGroupService.updateServiceGroup(id, serviceCreateRqstDto);
+        systemLogService.logInfo("Service group " + id + " updated");
         return ResponseEntity.ok().build();
     }
 
@@ -70,6 +73,7 @@ public class ServiceGroupController {
             remove = true;
             serviceGroupService.detachService(id);
         }
+        systemLogService.logInfo("Service group " + id + " updated");
         return ResponseEntity.ok().build();
     }
 
@@ -99,6 +103,7 @@ public class ServiceGroupController {
                 serviceGroupService.detachType(id);
             }
         }
+        systemLogService.logInfo("Service group " + id + " updated");
         return ResponseEntity.ok().build();
     }
 }

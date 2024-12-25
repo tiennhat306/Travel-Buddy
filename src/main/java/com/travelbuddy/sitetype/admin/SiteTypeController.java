@@ -14,6 +14,7 @@ import com.travelbuddy.persistence.repository.SiteTypeRepository;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeRspnDto;
 import com.travelbuddy.servicegroup.admin.ServiceGroupService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import jakarta.validation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -21,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,7 @@ public class SiteTypeController {
     private final AspectsByTypeService aspectsByTypeService;
     private final AspectsByTypeRepository aspectsByTypeRepository;
     private final ServiceGroupService serviceGroupService;
+    private final SystemLogService systemLogService;
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping
@@ -45,6 +48,12 @@ public class SiteTypeController {
         for (Integer serviceGroupId : siteTypeCreateRqstDto.getServiceGroups()) {
             serviceGroupService.associateType(serviceGroupId, siteTypeId);
         }
+        List<AspectsByTypeEntity> aspectsByType = new ArrayList<AspectsByTypeEntity>();
+        for (String aspectName : siteTypeCreateRqstDto.getAspects()) {
+            aspectsByType.add(AspectsByTypeEntity.builder().typeId(siteTypeId).aspectName(aspectName).build());
+        }
+        aspectsByTypeRepository.saveAll(aspectsByType);
+        systemLogService.logInfo("Site type with id " + siteTypeId + " created");
         return ResponseEntity.created(URI.create("/admin/api/siteTypes/" + siteTypeId)).build();
     }
 
@@ -68,6 +77,7 @@ public class SiteTypeController {
     @PutMapping("/{siteTypeId}")
     public ResponseEntity<Object> updateSiteType(@PathVariable int siteTypeId, @RequestBody @Valid SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
         siteTypeService.updateSiteType(siteTypeId, siteTypeCreateRqstDto);
+        systemLogService.logInfo("Site type with id " + siteTypeId + " updated");
         return ResponseEntity.noContent().build();
     }
 
@@ -75,6 +85,7 @@ public class SiteTypeController {
     @PostMapping("/aspects")
     public ResponseEntity<Object> postAspect(@RequestBody @Valid AspectsByTypeCreateRqstDto aspectsByTypeCreateRqstDto) {
         aspectsByTypeService.addNewAspects(aspectsByTypeCreateRqstDto.getTypeId(), aspectsByTypeCreateRqstDto.getAspectNames());
+        systemLogService.logInfo("New aspects added to site type with id " + aspectsByTypeCreateRqstDto.getTypeId());
         return ResponseEntity.created(URI.create("/admin/api/siteTypes/aspects")).build();
     }
 
@@ -88,6 +99,7 @@ public class SiteTypeController {
         if (aspectsByType.stream().anyMatch(a -> a.getAspectName().equalsIgnoreCase(aspectsByTypeEditRqstDto.getNewAspectName())))
             throw new DataAlreadyExistsException("Aspect already exists");
         aspectsByTypeService.updateAspectName(aspectsByTypeEditRqstDto.getId(), aspectsByTypeEditRqstDto.getNewAspectName());
+        systemLogService.logInfo("Aspect with id " + aspectsByTypeEditRqstDto.getId() + " updated");
         return ResponseEntity.noContent().build();
     }
 
@@ -97,6 +109,7 @@ public class SiteTypeController {
         List<AspectsByTypeEntity> aspectsByType = aspectsByTypeService.deleteAspectsByIds(aspectIds);
         Map<String, Object> response = new HashMap<>();
         response.put("failed", aspectsByType);
+        systemLogService.logInfo("Aspects with ids " + aspectIds + " deleted");
         return ResponseEntity.ok(response);
     }
 }

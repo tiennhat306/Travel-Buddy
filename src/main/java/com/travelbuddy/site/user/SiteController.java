@@ -11,6 +11,7 @@ import com.travelbuddy.persistence.repository.BehaviorLogRepository;
 import com.travelbuddy.persistence.repository.SiteApprovalRepository;
 import com.travelbuddy.persistence.repository.SiteRepository;
 import com.travelbuddy.siteversion.user.SiteVersionService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import com.travelbuddy.upload.cloud.StorageService;
 import com.travelbuddy.user.UserService;
 import com.travelbuddy.common.paging.PageDto;
@@ -36,13 +37,13 @@ public class SiteController {
     private final SiteRepository siteRepository;
     private final UserService userService;
     private final SiteReviewService siteReviewService;
-    private final StorageService storageService;
-    private final ObjectMapper objectMapper;
     private final BehaviorLogRepository behaviorLogRepository;
+    private final SystemLogService systemLogService;
 
     @PostMapping
     public ResponseEntity<Object> postSite(@RequestBody @Valid SiteCreateRqstDto siteCreateRqstDto) {
         Integer siteID = siteService.createSiteWithSiteVersion(siteCreateRqstDto);
+        systemLogService.logInfo("Site with id " + siteID + " created");
         return ResponseEntity.created(URI.create("/api/sites/" + siteID)).build();
     }
 
@@ -92,7 +93,7 @@ public class SiteController {
 
         // 3. Update the site
         siteService.updateSite(siteUpdateRqstDto);
-
+        systemLogService.logInfo("Site with id " + siteUpdateRqstDto.getSiteId() + " updated");
         return ResponseEntity.ok().build();
     }
 

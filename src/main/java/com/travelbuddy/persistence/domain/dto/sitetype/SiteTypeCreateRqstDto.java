@@ -16,4 +16,5 @@ public class SiteTypeCreateRqstDto {
     private String mode; // This resembles ENUM(ATTRACTION, AMENITY, DUAL)
 
     private List<Integer> serviceGroups;
+    private List<String> aspects;
 }

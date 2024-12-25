@@ -6,6 +6,7 @@ import com.travelbuddy.persistence.domain.dto.siteapproval.UpdateSiteApprovalRqs
 import com.travelbuddy.persistence.domain.entity.SiteApprovalEntity;
 import com.travelbuddy.persistence.repository.SiteApprovalRepository;
 import com.travelbuddy.siteversion.user.SiteVersionService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import jakarta.validation.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -21,6 +22,7 @@ public class SiteApprovalController {
     private final AdminService adminService;
     private final SiteApprovalRepository siteApprovalRepository;
     private final SiteVersionService siteVersionService;
+    private final SystemLogService systemLogService;
 
     @PreAuthorize("hasAuthority('MANAGE_SITES')")
     @PutMapping
@@ -28,6 +30,7 @@ public class SiteApprovalController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Integer userId = adminService.getAdminIdByEmailOrUsername(username);
         siteApprovalService.updateSiteApproval(siteApprovalRqstDto, userId);
+        systemLogService.logInfo("Site " + siteApprovalRqstDto.getId() + " approved by " + username);
         return ResponseEntity.ok().build();
     }
 

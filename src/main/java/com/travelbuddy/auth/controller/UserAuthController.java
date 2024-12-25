@@ -6,6 +6,7 @@ import com.travelbuddy.common.exception.errorresponse.DataAlreadyExistsException
 import com.travelbuddy.common.exception.errorresponse.InvaidTokenException;
 import com.travelbuddy.persistence.domain.dto.auth.*;
 import com.travelbuddy.persistence.domain.entity.TokenStoreEntity;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import com.travelbuddy.user.UserService;
 import jakarta.validation.Valid;
 import java.util.Optional;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserAuthController {
     private final UserAuthService userAuthService;
-
+    private final SystemLogService systemLogService;
     private final UserService userService;
 
     private final TokenStoreService tokenStoreService;
@@ -44,18 +45,21 @@ public class UserAuthController {
     @PostMapping("/confirm-registration")
     public ResponseEntity<Void> confirmRegistration(@RequestBody @Valid VerificationOtpRqstDto verificationOtpRqstToken) {
         userAuthService.confirmRegistration(verificationOtpRqstToken);
+        systemLogService.logInfo("New user registered");
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRqstDto resetPasswordRqstDto) {
         userAuthService.resetPassword(resetPasswordRqstDto);
+        systemLogService.logInfo(resetPasswordRqstDto.getEmail() + " requested to reset password");
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping("/validate-reset-password")
     public ResponseEntity<Object> validateResetPassword(@RequestBody @Valid VerificationOtpRqstDto verificationOtpRqstDto) {
         userAuthService.validateResetPassword(verificationOtpRqstDto);
+        systemLogService.logInfo(verificationOtpRqstDto.getEmail() + " validated reset password");
         return ResponseEntity.noContent().build();
     }
 
