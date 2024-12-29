@@ -18,8 +18,8 @@ spring:
   data:
     # Redis configuration
     redis:
-      host: junction.proxy.rlwy.net:41831
-      port: 6379
+      host: junction.proxy.rlwy.net
+      port: 41831
       database: 0
       password: NLUIxnnlgWoberzDlXFFvuxdlffMPZEL
 
