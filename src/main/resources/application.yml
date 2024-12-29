@@ -18,7 +18,7 @@ spring:
   data:
     # Redis configuration
     redis:
-      host: junction.proxy.rlwy.net
+      host: redis-production-8937.up.railway.app
       port: 6379
 
   servlet:
