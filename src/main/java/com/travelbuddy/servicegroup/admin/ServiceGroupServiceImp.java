@@ -44,7 +44,10 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
         ServiceGroupEntity serviceGroupEntity = ServiceGroupEntity.builder()
                 .serviceGroupName(serviceGroupCreateRqstDto.getGroupName())
                 .build();
-        return serviceGroupRepository.save(serviceGroupEntity).getId();
+        Integer id = serviceGroupRepository.save(serviceGroupEntity).getId();
+        // Associate the service group with the types
+        serviceGroupCreateRqstDto.getSiteServiceIds().forEach(service -> associateService(id, service));
+        return id;
     }
 
     @Override

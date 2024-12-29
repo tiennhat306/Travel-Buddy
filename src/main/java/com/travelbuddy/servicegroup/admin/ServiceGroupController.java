@@ -76,7 +76,11 @@ public class ServiceGroupController {
             serviceGroupService.associateService(id, serviceId);
         } else {
             remove = true;
-            serviceGroupService.detachService(id);
+            if (serviceId != null) {
+                serviceGroupService.detachService(id, serviceId);
+            } else {
+                serviceGroupService.detachService(id);
+            }
         }
         systemLogService.logInfo("Service group " + id + " updated");
         return ResponseEntity.ok().build();
