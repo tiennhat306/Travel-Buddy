@@ -20,6 +20,8 @@ spring:
     redis:
       host: redis-production-8937.up.railway.app
       port: 6379
+      database: 0
+      password: XOGnCzIEUtpcRgamfnMaohKqmqnSFtlp
 
   servlet:
     multipart:
