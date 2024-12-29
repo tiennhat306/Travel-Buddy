@@ -18,10 +18,10 @@ spring:
   data:
     # Redis configuration
     redis:
-      host: redis-production-8937.up.railway.app
+      host: junction.proxy.rlwy.net:41831
       port: 6379
       database: 0
-      password: XOGnCzIEUtpcRgamfnMaohKqmqnSFtlp
+      password: NLUIxnnlgWoberzDlXFFvuxdlffMPZEL
 
   servlet:
     multipart:
