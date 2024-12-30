@@ -175,6 +175,9 @@ public class SiteServiceImp implements SiteService {
     public void likeSite(int siteId) {
         int userId = requestUtils.getUserIdCurrentRequest();
 
+        siteRepository.findById(siteId)
+                .orElseThrow(() -> new NotFoundException("Site not found"));
+
         Optional<SiteReactionEntity> siteReactionEntityOpt = siteReactionRepository.findByUserIdAndSiteId(userId, siteId);
 
         SiteReactionEntity siteReactionEntity;
@@ -198,6 +201,9 @@ public class SiteServiceImp implements SiteService {
     @Override
     public void dislikeSite(int siteId) {
         int userId = requestUtils.getUserIdCurrentRequest();
+
+        siteRepository.findById(siteId)
+                .orElseThrow(() -> new NotFoundException("Site not found"));
 
         Optional<SiteReactionEntity> siteReactionEntityOpt = siteReactionRepository.findByUserIdAndSiteId(userId, siteId);
 
