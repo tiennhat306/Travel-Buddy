@@ -14,5 +14,5 @@ public class PaginationLimitConstants {
     public static final int MY_SITE_REVIEW_LIMIT = 5;
     public static final int MY_SITE_LIMIT = 10;
 
-    public static final int SYS_LOG_LIMIT = 100;
+    public static final int SYS_LOG_LIMIT = 20;
 }
