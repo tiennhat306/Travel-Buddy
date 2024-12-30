@@ -99,7 +99,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
     @Override
     public void updateSiteReview(int siteReviewId, SiteReviewUpdateRqstDto siteReviewUpdateRqstDto) {
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) siteReviewId)
+        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(siteReviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
         int userId = requestUtils.getUserIdCurrentRequest();
@@ -142,7 +142,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
     @Override
     public void deleteSiteReview(int reviewId) {
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
         int userId = requestUtils.getUserIdCurrentRequest();
@@ -161,7 +161,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
     @Override
     public SiteReviewDetailRspnDto getSiteReviewById(int reviewId) {
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
         return siteReviewMapper.siteReviewEntityToSiteReviewDetailRspnDto(siteReviewEntity);
@@ -171,10 +171,10 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     public void likeSiteReview(int reviewId) {
         int userId = requestUtils.getUserIdCurrentRequest();
 
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
-        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, siteReviewEntity.getId());
+        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, reviewId);
 
         ReviewReactionEntity reviewReactionEntity;
         if (reviewReactionEntityOpt.isPresent()) {
@@ -187,10 +187,11 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         } else {
             reviewReactionEntity = ReviewReactionEntity.builder()
                     .userId(userId)
-                    .reviewId(siteReviewEntity.getId())
+                    .reviewId(reviewId)
                     .reactionType(ReactionTypeEnum.LIKE.name())
                     .build();
         }
+
         reviewReactionRepository.save(reviewReactionEntity);
     }
 
@@ -198,10 +199,10 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     public void dislikeSiteReview(int reviewId) {
         int userId = requestUtils.getUserIdCurrentRequest();
 
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
-        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, siteReviewEntity.getId());
+        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, reviewId);
 
         ReviewReactionEntity reviewReactionEntity;
         if (reviewReactionEntityOpt.isPresent()) {
@@ -214,7 +215,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         } else {
             reviewReactionEntity = ReviewReactionEntity.builder()
                     .userId(userId)
-                    .reviewId(siteReviewEntity.getId())
+                    .reviewId(reviewId)
                     .reactionType(ReactionTypeEnum.DISLIKE.name())
                     .build();
         }
