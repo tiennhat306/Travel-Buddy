@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-@ToString(exclude = {"siteReviews", "reviewReactions", "travelPlans", "siteEntities", "siteReactions"})
+@ToString(exclude = {"siteReviews", "reviewReactions", "travelPlans", "siteEntities", "siteReactions", "reports"})
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,6 +68,9 @@ public class UserEntity {
 
     @ManyToMany(mappedBy = "userEntities", fetch = FetchType.LAZY)
     private List<TravelPlanEntity> travelPlans;
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY)
+    private List<UserReportEntity> reports;
 
     @PrePersist
     public void prePersist() {
