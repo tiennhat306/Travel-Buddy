@@ -1,6 +1,7 @@
 package com.travelbuddy.admin;
 
 import com.travelbuddy.common.constants.PaginationLimitConstants;
+import com.travelbuddy.common.exception.errorresponse.DataAlreadyExistsException;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
@@ -26,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.swing.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -133,8 +135,11 @@ public class AdminServiceImpl implements AdminService {
         adminEntity.setAddress(adminUpdateRqstDto.getAddress());
         adminEntity.setPhoneNumber(adminUpdateRqstDto.getPhoneNumber());
         adminEntity.setEnabled(adminUpdateRqstDto.isEnabled());
-        adminEntity.setPassword(passwordEncoder.encode(adminUpdateRqstDto.getPassword()));
-        adminEntity.setAvatar(FileEntity.builder().id(adminUpdateRqstDto.getAvatarId()).url(adminUpdateRqstDto.getAvatarUrl()).build());
+        if (!adminUpdateRqstDto.getPassword().isBlank())
+            adminEntity.setPassword(passwordEncoder.encode(adminUpdateRqstDto.getPassword()));
+        if (!adminUpdateRqstDto.getAvatarId().isBlank())
+            adminEntity.setAvatar(FileEntity.builder().id(adminUpdateRqstDto.getAvatarId()).url(adminUpdateRqstDto.getAvatarUrl()).build());
+        adminEntity.setUpdatedAt(LocalDateTime.now());
         adminRepository.save(adminEntity);
     }
 
@@ -157,5 +162,29 @@ public class AdminServiceImpl implements AdminService {
         AdminEntity admin = adminRepository.findById(adminResetPasswordRqstDto.getAdminId()).orElseThrow(() -> new NotFoundException("Not found admin"));
         admin.setPassword(passwordEncoder.encode(adminResetPasswordRqstDto.getPassword()));
         adminRepository.save(admin);
+    }
+
+    @Override
+    public void newAdminPermission(String permission) {
+        // Check for existing permission
+        boolean isExist = permissionRepository.existsByNameIgnoreCase(permission);
+        if (isExist) {
+            throw new DataAlreadyExistsException("Permission already exists");
+        }
+        PermissionEntity permissionEntity = new PermissionEntity();
+        permissionEntity.setName(permission);
+        permissionRepository.save(permissionEntity);
+    }
+
+    @Override
+    public void newAdminGroup(String group) {
+        // Check for existing group
+        boolean isExist = groupRepository.existsByNameIgnoreCase(group);
+        if (isExist) {
+            throw new DataAlreadyExistsException("Group already exists");
+        }
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setName(group);
+        groupRepository.save(groupEntity);
     }
 }

@@ -23,7 +23,7 @@ public class PermissionServiceImp implements PermissionService {
 
     @Override
     public PageDto<PermissionEntity> getPermissions(int page, String search) {
-        Pageable pageable = PageRequest.of(page, PERMISSION_LIMIT, Sort.by("id"));
+        Pageable pageable = PageRequest.of(page - 1, PERMISSION_LIMIT, Sort.by("id"));
         return pageMapper.toPageDto(permissionRepository.findAllByNameContainingIgnoreCase(search, pageable));
     }
 

@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface GroupRepository extends JpaRepository<GroupEntity, Long> {
     Optional<GroupEntity> findByName(String name);
     Page<GroupEntity> findAllByNameContainingIgnoreCase(String search, Pageable pageable);
+    boolean existsByNameIgnoreCase(String name);
 }

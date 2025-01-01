@@ -3,10 +3,8 @@ package com.travelbuddy.auth.controller;
 import com.travelbuddy.admin.AdminService;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.groups.admin.GroupService;
-import com.travelbuddy.persistence.domain.dto.account.admin.AdminDetailRspnDto;
-import com.travelbuddy.persistence.domain.dto.account.admin.AdminResetPasswordRqstDto;
-import com.travelbuddy.persistence.domain.dto.account.admin.CreateAdminRqstDto;
-import com.travelbuddy.persistence.domain.dto.account.admin.GenericAssociationRqstDto;
+import com.travelbuddy.permission.admin.PermissionService;
+import com.travelbuddy.persistence.domain.dto.account.admin.*;
 import com.travelbuddy.persistence.domain.dto.auth.ResetPasswordRqstDto;
 import com.travelbuddy.persistence.domain.entity.AdminEntity;
 import jakarta.validation.Valid;
@@ -23,6 +21,7 @@ import java.util.List;
 public class AdminController {
     private final AdminService adminService;
     private final GroupService groupService;
+    private final PermissionService permissionService;
 
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
     @PostMapping("/manage-user")
@@ -72,8 +71,18 @@ public class AdminController {
 
     @GetMapping("/permissions")
     @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
-    public ResponseEntity<Object> getPermissions() {
-        return ResponseEntity.ok("Permissions");
+    public ResponseEntity<Object> getPermissions(@RequestParam(name = "page", required = false) Integer page,
+                                                 @RequestParam(name = "search", defaultValue = "") String search) {
+        if (page == null) {
+            return ResponseEntity.ok(permissionService.getAllPermissions());
+        }
+        return ResponseEntity.ok(permissionService.getPermissions(page, search));
+    }
+
+    @GetMapping("/permissions/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> getPermission(@PathVariable long id) {
+        return ResponseEntity.ok(permissionService.getPermissionById(id));
     }
 
     @PutMapping("/admin-accounts/attach-group")
@@ -129,6 +138,27 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
     public ResponseEntity<Object> resetPassword(@RequestBody @Valid AdminResetPasswordRqstDto adminResetPasswordRqstDto) {
         adminService.resetPassword(adminResetPasswordRqstDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/admin-accounts")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> updateAdmin(@RequestBody @Valid AdminUpdateRqstDto adminUpdateRqstDto) {
+        adminService.updateAdmin(adminUpdateRqstDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/admin-groups")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> createNewGroup(@RequestBody @Valid CreateGroupRqstDto createGroupRqstDto) {
+        adminService.newAdminGroup(createGroupRqstDto.getName());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/permissions")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> createNewPermission(@RequestBody @Valid CreatePermissionDto createPermissionDto) {
+        adminService.newAdminPermission(createPermissionDto.getPermissionName());
         return ResponseEntity.ok().build();
     }
 }
