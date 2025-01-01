@@ -17,6 +17,8 @@ public class PaginationLimitConstants {
     public static final int SYS_LOG_LIMIT = 20;
 
     public static final int ADMIN_ACCOUNT_LIMITS = 20;
+    public static final int GROUP_LIMIT = 20;
+    public static final int PERMISSION_LIMIT = 20;
 
     public static final int REPORT_LIMIT = 10;
 }
