@@ -32,6 +32,26 @@ import java.util.List;
 public class WebSecurityConfig {
     @Bean
     @Order(1)
+    public SecurityFilterChain webSocketSecurityFilterChain(HttpSecurity http,
+                                                            JWTProcessor jwtProcessor) throws Exception {
+        AuthenticationManager authenticationManager = authManager(http, jwtProcessor);
+
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.authenticationManager(authenticationManager)
+                .sessionManagement((sessionManagement) -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterAfter(new BearerTokenAuthenticationFilter(authenticationManager), SecurityContextHolderFilter.class);
+
+        http.securityMatcher("/ws/**")
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll()
+                ).cors(cors -> cors.configurationSource(corsConfigurationSource()));
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http,
                                                         JWTProcessor jwtProcessor) throws Exception {
         AuthenticationManager authenticationManager = authManager(http, jwtProcessor);
@@ -52,7 +72,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain userSecurityFilterChain(HttpSecurity http,
                                                        JWTProcessor jwtProcessor) throws Exception {
         AuthenticationManager authenticationManager = authManager(http, jwtProcessor);
