@@ -2,8 +2,10 @@ package com.travelbuddy.persistence.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import java.util.Set;
 @Table(name = "permissions")
 @Data
 @EqualsAndHashCode
+@ToString(exclude = {"groupEntities"})
 public class PermissionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
