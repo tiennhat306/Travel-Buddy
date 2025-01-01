@@ -4,11 +4,15 @@ import com.travelbuddy.admin.AdminService;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.groups.admin.GroupService;
 import com.travelbuddy.persistence.domain.dto.account.admin.AdminDetailRspnDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.GenericAssociationRqstDto;
 import com.travelbuddy.persistence.domain.entity.AdminEntity;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -71,17 +75,29 @@ public class AdminController {
 
     @PutMapping("/admin-accounts/attach-group")
     @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
-    public ResponseEntity<Object> attachGroup(@RequestParam(name = "adminId") int adminId,
-                                              @RequestParam(name = "groupId") int groupId) {
-        adminService.associateAdminToGroup(adminId, groupId);
+    public ResponseEntity<Object> attachGroup(@RequestBody @Valid GenericAssociationRqstDto requestDto) {
+        adminService.associateAdminToGroup(requestDto.getParentId(), requestDto.getDependencyIds());
         return ResponseEntity.created(null).build();
     }
 
     @PutMapping("/admin-accounts/detach-group")
     @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
-    public ResponseEntity<Object> detachGroup(@RequestParam(name = "adminId") int adminId,
-                                              @RequestParam(name = "groupId") int groupId) {
-        adminService.detachAdminFromGroup(adminId, groupId);
+    public ResponseEntity<Object> detachGroup(@RequestBody @Valid GenericAssociationRqstDto requestDto) {
+        adminService.detachAdminFromGroup(requestDto.getParentId(), requestDto.getDependencyIds());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/admin-groups/attach-permission")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> attachPermission(@RequestBody @Valid GenericAssociationRqstDto requestDto) {
+        adminService.associatePermissionToGroup(requestDto.getParentId(), requestDto.getDependencyIds());
+        return ResponseEntity.created(null).build();
+    }
+
+    @PutMapping("/admin-groups/detach-permission")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> detachPermission(@RequestBody @Valid GenericAssociationRqstDto requestDto) {
+        adminService.detachPermissionFromGroup(requestDto.getParentId(), requestDto.getDependencyIds());
         return ResponseEntity.noContent().build();
     }
 }
