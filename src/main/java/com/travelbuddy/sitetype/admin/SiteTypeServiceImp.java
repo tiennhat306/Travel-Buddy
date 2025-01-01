@@ -125,4 +125,9 @@ public class SiteTypeServiceImp implements SiteTypeService {
         siteType.setDualState(DualStateEnum.valueOf(siteTypeCreateRqstDto.getMode()));
         siteTypeRepository.save(siteType);
     }
+
+    @Override
+    public List<Integer> getAllSiteTypeId() {
+        return siteTypeRepository.getAllSiteTypeId();
+    }
 }

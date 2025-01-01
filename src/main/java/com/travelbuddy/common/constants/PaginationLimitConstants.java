@@ -21,4 +21,5 @@ public class PaginationLimitConstants {
     public static final int PERMISSION_LIMIT = 20;
 
     public static final int REPORT_LIMIT = 10;
+    public static final int PERSONALIZATION_LIMIT = 30;
 }

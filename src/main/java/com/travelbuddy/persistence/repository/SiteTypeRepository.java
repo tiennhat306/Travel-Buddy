@@ -17,4 +17,8 @@ public interface SiteTypeRepository extends JpaRepository<SiteTypeEntity, Intege
     Optional<Integer> findIdByTypeNameIgnoreCase(String typeName);
 
     Optional<List<SiteTypeEntity>> findAllByTypeNameIgnoreCase(String typeName);
+
+    // Get distinct site type id
+    @Query("SELECT s.id FROM SiteTypeEntity s")
+    List<Integer> getAllSiteTypeId();
 }
