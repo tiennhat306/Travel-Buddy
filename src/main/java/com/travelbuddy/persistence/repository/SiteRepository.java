@@ -1,6 +1,7 @@
 package com.travelbuddy.persistence.repository;
 
 import com.travelbuddy.persistence.domain.entity.SiteEntity;
+import com.travelbuddy.persistence.domain.entity.SiteReactionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
