@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "site_reviews")
-@ToString(exclude = {"site", "user", "reviewMedias", "reviewReactions", })
+@ToString(exclude = {"siteEntity", "userEntity", "reviewMedias", "reviewReactions", "reports"})
 public class SiteReviewEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +40,9 @@ public class SiteReviewEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "enabled")
+    private boolean enabled = true;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", insertable = false, updatable = false)
     private SiteEntity siteEntity;
@@ -53,6 +56,9 @@ public class SiteReviewEntity {
 
     @OneToMany(mappedBy = "siteReviewEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewReactionEntity> reviewReactions;
+
+    @OneToMany(mappedBy = "siteReviewEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SiteReviewReportEntity> reports;
 
     @PrePersist
     public void prePersist() {

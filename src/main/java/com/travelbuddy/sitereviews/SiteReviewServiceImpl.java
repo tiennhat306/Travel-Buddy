@@ -9,6 +9,9 @@ import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.mapper.SiteReviewMapper;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.*;
 import com.travelbuddy.persistence.domain.entity.FileEntity;
@@ -22,6 +25,7 @@ import com.travelbuddy.site.user.SiteService;
 import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +53,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     private final ReviewReactionRepository reviewReactionRepository;
     private final RequestUtils requestUtils;
     private final SiteService siteService;
+    private final NotificationProducer notificationProducer;
 
     @Override
     public void createSiteReview(SiteReviewCreateRqstDto siteReviewCreateRqstDto) {
@@ -83,6 +88,13 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         }
 
         reviewMediaRepository.saveAll(reviewMediaEntities);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", userId);
+        jsonObject.put("type", NotificationTypeEnum.SITE_COMMENT.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE.getType());
+        jsonObject.put("entityId", siteReviewEntity.getSiteId());
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -99,7 +111,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
     @Override
     public void updateSiteReview(int siteReviewId, SiteReviewUpdateRqstDto siteReviewUpdateRqstDto) {
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) siteReviewId)
+        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(siteReviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
         int userId = requestUtils.getUserIdCurrentRequest();
@@ -142,7 +154,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
     @Override
     public void deleteSiteReview(int reviewId) {
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
         int userId = requestUtils.getUserIdCurrentRequest();
@@ -161,7 +173,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
     @Override
     public SiteReviewDetailRspnDto getSiteReviewById(int reviewId) {
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
         return siteReviewMapper.siteReviewEntityToSiteReviewDetailRspnDto(siteReviewEntity);
@@ -171,10 +183,10 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     public void likeSiteReview(int reviewId) {
         int userId = requestUtils.getUserIdCurrentRequest();
 
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
-        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, siteReviewEntity.getId());
+        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, reviewId);
 
         ReviewReactionEntity reviewReactionEntity;
         if (reviewReactionEntityOpt.isPresent()) {
@@ -187,21 +199,29 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         } else {
             reviewReactionEntity = ReviewReactionEntity.builder()
                     .userId(userId)
-                    .reviewId(siteReviewEntity.getId())
+                    .reviewId(reviewId)
                     .reactionType(ReactionTypeEnum.LIKE.name())
                     .build();
         }
+
         reviewReactionRepository.save(reviewReactionEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", userId);
+        jsonObject.put("type", NotificationTypeEnum.REVIEW_REACTION.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE_REVIEW.getType());
+        jsonObject.put("entityId", reviewId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
     public void dislikeSiteReview(int reviewId) {
         int userId = requestUtils.getUserIdCurrentRequest();
 
-        SiteReviewEntity siteReviewEntity = siteReviewRepository.findById((long) reviewId)
+        siteReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new NotFoundException("Site review not found"));
 
-        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, siteReviewEntity.getId());
+        Optional<ReviewReactionEntity> reviewReactionEntityOpt = reviewReactionRepository.findByUserIdAndReviewId(userId, reviewId);
 
         ReviewReactionEntity reviewReactionEntity;
         if (reviewReactionEntityOpt.isPresent()) {
@@ -214,7 +234,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         } else {
             reviewReactionEntity = ReviewReactionEntity.builder()
                     .userId(userId)
-                    .reviewId(siteReviewEntity.getId())
+                    .reviewId(reviewId)
                     .reactionType(ReactionTypeEnum.DISLIKE.name())
                     .build();
         }

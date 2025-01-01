@@ -4,6 +4,7 @@ import com.travelbuddy.common.exception.errorresponse.DataAlreadyExistsException
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.persistence.domain.dto.servicegroup.ServiceGroupCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
+import com.travelbuddy.persistence.domain.entity.ServiceEntity;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupByTypeEntity;
 import com.travelbuddy.persistence.domain.entity.ServiceGroupEntity;
 import com.travelbuddy.persistence.domain.entity.ServicesByGroupEntity;
@@ -43,12 +44,24 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
         ServiceGroupEntity serviceGroupEntity = ServiceGroupEntity.builder()
                 .serviceGroupName(serviceGroupCreateRqstDto.getGroupName())
                 .build();
-        return serviceGroupRepository.save(serviceGroupEntity).getId();
+        Integer id = serviceGroupRepository.save(serviceGroupEntity).getId();
+        // Associate the service group with the types
+        serviceGroupCreateRqstDto.getSiteServiceIds().forEach(service -> associateService(id, service));
+        return id;
     }
 
     @Override
-    public ServiceGroupEntity getServiceGroup(Integer id) {
-        return serviceGroupRepository.findById(id).orElseThrow(() -> new NotFoundException("Service group with id " + id + " not found"));
+    public GroupedSiteServicesRspnDto getServiceGroup(Integer id) {
+        ServiceGroupEntity serviceGroupEntity = serviceGroupRepository.findById(id).orElseThrow(() -> new NotFoundException("Service group with id " + id + " not found"));
+        List<ServiceEntity> servicesInGroupList = servicesByGroupRepository.findAllByServiceGroupId(serviceGroupEntity.getId())
+                .orElseThrow(() -> new NotFoundException("Service group not found"))
+                .stream()
+                .map(ServicesByGroupEntity::getServiceEntity)
+                .toList();
+        GroupedSiteServicesRspnDto rspnd = new GroupedSiteServicesRspnDto();
+        rspnd.setServiceGroup(serviceGroupEntity);
+        rspnd.setServices(servicesInGroupList);
+        return rspnd;
     }
 
     @Override

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ServiceGroupService {
     Integer createServiceGroup(ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
-    ServiceGroupEntity getServiceGroup(Integer id);
+    GroupedSiteServicesRspnDto getServiceGroup(Integer id);
     List<GroupedSiteServicesRspnDto> getServiceGroups();
     void updateServiceGroup(Integer serviceGroupId, ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
 

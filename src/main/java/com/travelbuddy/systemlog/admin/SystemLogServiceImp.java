@@ -11,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.travelbuddy.common.constants.PaginationLimitConstants.SYS_LOG_LIMIT;
 
 @Service
@@ -46,9 +48,14 @@ public class SystemLogServiceImp implements SystemLogService {
     }
 
     @Override
-    public PageDto<LogEntity> getLogs(int page) {
+    public PageDto<LogEntity> getLogs(int page, String searchText) {
         Pageable pageable = PageRequest.of(page - 1, SYS_LOG_LIMIT);
-        Page<LogEntity> logEntities = logRepository.findAllByOrderByTimestampDesc(pageable);
+        Page<LogEntity> logEntities = logRepository.findAllByContentContainingOrLevelContainingOrderByTimestampDesc(searchText, searchText, pageable);
         return pageMapper.toPageDto(logEntities);
+    }
+
+    @Override
+    public List<LogEntity> getAllLogs() {
+        return logRepository.findAll();
     }
 }

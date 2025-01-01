@@ -30,12 +30,17 @@ public class ServiceGroupController {
         return ResponseEntity.ok(URI.create("/api/admin/service-groups/" + id));
     }
 
-    @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getServiceGroup(@PathVariable Integer id) {
-        ServiceGroupEntity serviceGroupEntity = serviceGroupService.getServiceGroup(id);
-        return ResponseEntity.ok(serviceGroupEntity);
+    public ResponseEntity<Object> getServiceGroupById(@PathVariable Integer id, @RequestParam(required = false) Boolean associate) {
+        GroupedSiteServicesRspnDto serviceGroupEntity = serviceGroupService.getServiceGroup(id);
+
+        if (associate != null && associate) {
+            return ResponseEntity.ok(serviceGroupEntity);
+        }
+
+        return ResponseEntity.ok(serviceGroupEntity.getServiceGroup());
     }
+
 
     @GetMapping()
     public ResponseEntity<Object> getServiceGroups() {
@@ -71,7 +76,11 @@ public class ServiceGroupController {
             serviceGroupService.associateService(id, serviceId);
         } else {
             remove = true;
-            serviceGroupService.detachService(id);
+            if (serviceId != null) {
+                serviceGroupService.detachService(id, serviceId);
+            } else {
+                serviceGroupService.detachService(id);
+            }
         }
         systemLogService.logInfo("Service group " + id + " updated");
         return ResponseEntity.ok().build();

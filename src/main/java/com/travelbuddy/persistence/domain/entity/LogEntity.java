@@ -26,4 +26,9 @@ public class LogEntity {
 
     @Column(name = "content")
     private String content;
+
+    @Override
+    public String toString() {
+        return String.format("[%s] %s: %s\n", timestamp, level, content);
+    }
 }

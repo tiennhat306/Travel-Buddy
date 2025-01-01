@@ -9,6 +9,10 @@ import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.fee.FeeService;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.NotificationRepository;
+import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.openningtime.user.OpeningTimeService;
 import com.travelbuddy.persistence.domain.dto.site.*;
 import com.travelbuddy.persistence.domain.entity.*;
@@ -21,6 +25,7 @@ import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +57,8 @@ public class SiteServiceImp implements SiteService {
     private final SiteVersionSpecifications siteVersionSpecifications;
     private final PageMapper pageMapper;
     private final FeeService feeService;
+
+    private final NotificationProducer notificationProducer;
 
     @Override
     @Transactional
@@ -175,6 +182,9 @@ public class SiteServiceImp implements SiteService {
     public void likeSite(int siteId) {
         int userId = requestUtils.getUserIdCurrentRequest();
 
+        siteRepository.findById(siteId)
+                .orElseThrow(() -> new NotFoundException("Site not found"));
+
         Optional<SiteReactionEntity> siteReactionEntityOpt = siteReactionRepository.findByUserIdAndSiteId(userId, siteId);
 
         SiteReactionEntity siteReactionEntity;
@@ -193,11 +203,21 @@ public class SiteServiceImp implements SiteService {
                     .build();
         }
         siteReactionRepository.save(siteReactionEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", userId);
+        jsonObject.put("type", NotificationTypeEnum.SITE_REACTION.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE.getType());
+        jsonObject.put("entityId", siteId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
     public void dislikeSite(int siteId) {
         int userId = requestUtils.getUserIdCurrentRequest();
+
+        siteRepository.findById(siteId)
+                .orElseThrow(() -> new NotFoundException("Site not found"));
 
         Optional<SiteReactionEntity> siteReactionEntityOpt = siteReactionRepository.findByUserIdAndSiteId(userId, siteId);
 

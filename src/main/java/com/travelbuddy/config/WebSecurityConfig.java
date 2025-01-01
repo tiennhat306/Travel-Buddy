@@ -9,6 +9,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -26,9 +28,30 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
     @Bean
     @Order(1)
+    public SecurityFilterChain webSocketSecurityFilterChain(HttpSecurity http,
+                                                            JWTProcessor jwtProcessor) throws Exception {
+        AuthenticationManager authenticationManager = authManager(http, jwtProcessor);
+
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.authenticationManager(authenticationManager)
+                .sessionManagement((sessionManagement) -> sessionManagement
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterAfter(new BearerTokenAuthenticationFilter(authenticationManager), SecurityContextHolderFilter.class);
+
+        http.securityMatcher("/ws/**")
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll()
+                ).cors(cors -> cors.configurationSource(corsConfigurationSource()));
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http,
                                                         JWTProcessor jwtProcessor) throws Exception {
         AuthenticationManager authenticationManager = authManager(http, jwtProcessor);
@@ -49,7 +72,7 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain userSecurityFilterChain(HttpSecurity http,
                                                        JWTProcessor jwtProcessor) throws Exception {
         AuthenticationManager authenticationManager = authManager(http, jwtProcessor);
