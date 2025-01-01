@@ -294,6 +294,23 @@ public class PersonalNotificationConsumer {
                     }
                     break;
                 }
+                case SITE_APPROVE: {
+                    if (entityType == NotiEntityTypeEnum.SITE.getType()) {
+                        SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);
+                        int destinationUserId = siteBasicInfoRspnDto.getOwnerId();
+                        int notificationId = saveNotification(destinationUserId, type, entityType, entityId, null);
+
+                        JSONObject contentJson = new JSONObject();
+                        contentJson.put("notificationId", notificationId);
+                        contentJson.put("siteId", entityId);
+                        contentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
+                        contentJson.put("message", "Hệ thống đã phê duyệt thông tin địa điểm của bạn");
+                        String fullMessage = contentJson.getString("message") + " " + contentJson.getString("siteName");
+                        contentJson.put("fullMessage", fullMessage);
+                        sendNotification(destinationUserId, contentJson.toString());
+                    }
+                    break;
+                }
                 case SITE_BAN: {
                     if (entityType == NotiEntityTypeEnum.SITE.getType()) {
                         SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);

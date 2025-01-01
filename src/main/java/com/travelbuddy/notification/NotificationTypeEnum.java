@@ -13,6 +13,7 @@ public enum NotificationTypeEnum {
     PLAN_ADD(5),
     PLAN_UPDATE(6),
     PLAN_DELETE(7),
+    SITE_APPROVE(10),
     SITE_BAN(11),
     SITE_UNBAN(12),
     REVIEW_BAN(13),
