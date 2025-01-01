@@ -23,4 +23,7 @@ public interface SiteReviewRepository extends JpaRepository<SiteReviewEntity, In
 
     @Query("SELECT sre.siteId FROM SiteReviewEntity sre WHERE sre.id = ?1")
     int getSiteIdById(int id);
+
+    @Query("SELECT sre FROM SiteReviewEntity sre WHERE sre.siteId = ?1 AND sre.userId = ?2")
+    SiteReviewEntity findBySiteIdAndUserId(int entityId, int userId);
 }

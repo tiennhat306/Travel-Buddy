@@ -6,6 +6,9 @@ import com.travelbuddy.common.exception.errorresponse.ForbiddenException;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.common.exception.userinput.UserInputException;
 import com.travelbuddy.common.utils.RequestUtils;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.dto.travelplan.*;
 import com.travelbuddy.persistence.domain.entity.*;
@@ -15,6 +18,7 @@ import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +40,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
     private final SiteService siteService;
     private final StorageExecutorService storageExecutorService;
     private final FileRepository fileRepository;
+    private final NotificationProducer notificationProducer;
 
     @Override
     public int createTravelPlan(TravelPlanCreateRqstDto travelPlanCreateRqstDto) {
@@ -107,12 +112,40 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             }
         }
 
+        JSONObject fromObject = new JSONObject();
+        fromObject.put("name", travelPlanEntity.getName());
+        fromObject.put("startTime", travelPlanEntity.getStartTime());
+        fromObject.put("endTime", travelPlanEntity.getEndTime());
+
+        JSONObject toObject = new JSONObject();
+        toObject.put("name", travelPlanUpdateRqstDto.getName());
+        toObject.put("startTime", travelPlanUpdateRqstDto.getStartTime());
+        toObject.put("endTime", travelPlanUpdateRqstDto.getEndTime());
+
+        JSONObject messageObject = new JSONObject();
+        messageObject.put("name", "Đã thay đổi tên kế hoạch");
+        messageObject.put("startTime", "Đã thay đổi thời gian bắt đầu");
+        messageObject.put("endTime", "Đã thay đổi thời gian kết thúc");
+
+        JSONObject diffObject = new JSONObject();
+        diffObject.put("from", fromObject);
+        diffObject.put("to", toObject);
+        diffObject.put("message", messageObject);
+
         travelPlanEntity.setName(travelPlanUpdateRqstDto.getName());
         travelPlanEntity.setDescription(travelPlanUpdateRqstDto.getDescription());
         travelPlanEntity.setStartTime(travelPlanUpdateRqstDto.getStartTime());
         travelPlanEntity.setEndTime(travelPlanUpdateRqstDto.getEndTime());
 
         travelPlanRepository.save(travelPlanEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", requestUserId);
+        jsonObject.put("type", NotificationTypeEnum.PLAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.TRAVEL_PLAN.getType());
+        jsonObject.put("entityId", travelPlanId);
+        jsonObject.put("content", diffObject.toString());
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -250,6 +283,19 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                 .build();
 
         travelPlanSiteRepository.save(travelPlanSiteEntity);
+
+        JSONObject contentObject = new JSONObject();
+        contentObject.put("siteId", siteEntity.getId());
+        contentObject.put("message", "Đã thêm địa điểm vào kế hoạch");
+
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", requestUserId);
+        jsonObject.put("type", NotificationTypeEnum.PLAN_ADD.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.TRAVEL_PLAN.getType());
+        jsonObject.put("entityId", travelPlanId);
+        jsonObject.put("content", contentObject.toString());
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -270,6 +316,19 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         }
 
         travelPlanSiteRepository.deleteByTravelPlanIdAndSiteId(travelPlanId, siteId);
+
+        JSONObject contentObject = new JSONObject();
+        contentObject.put("siteId", siteEntity.getId());
+        contentObject.put("message", "Đã xóa địa điểm khỏi kế hoạch");
+
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", requestUserId);
+        jsonObject.put("type", NotificationTypeEnum.PLAN_DELETE.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.TRAVEL_PLAN.getType());
+        jsonObject.put("entityId", travelPlanId);
+        jsonObject.put("content", contentObject.toString());
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -300,12 +359,44 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             throw new UserInputException("Site end time must be before travel plan end time");
         }
 
+        JSONObject fromObject = new JSONObject();
+        fromObject.put("name", travelPlanSiteEntity.getName());
+        fromObject.put("startTime", travelPlanSiteEntity.getStartTime());
+        fromObject.put("endTime", travelPlanSiteEntity.getEndTime());
+
+        JSONObject toObject = new JSONObject();
+        toObject.put("name", travelPlanSiteUpdateRqstDto.getName());
+        toObject.put("startTime", travelPlanSiteUpdateRqstDto.getStartTime());
+        toObject.put("endTime", travelPlanSiteUpdateRqstDto.getEndTime());
+
+        JSONObject messageObject = new JSONObject();
+        messageObject.put("name", "Đã thay đổi tên địa điểm");
+        messageObject.put("startTime", "Đã thay đổi thời gian bắt đầu");
+        messageObject.put("endTime", "Đã thay đổi thời gian kết thúc");
+
+        JSONObject diffObject = new JSONObject();
+        diffObject.put("from", fromObject);
+        diffObject.put("to", toObject);
+        diffObject.put("message", messageObject);
+
         travelPlanSiteEntity.setName(travelPlanSiteUpdateRqstDto.getName());
         travelPlanSiteEntity.setDescription(travelPlanSiteUpdateRqstDto.getDescription());
         travelPlanSiteEntity.setStartTime(travelPlanSiteUpdateRqstDto.getStartTime());
         travelPlanSiteEntity.setEndTime(travelPlanSiteUpdateRqstDto.getEndTime());
 
         travelPlanSiteRepository.save(travelPlanSiteEntity);
+
+        JSONObject contentObject = new JSONObject();
+        contentObject.put("siteId", siteEntity.getId());
+        contentObject.put("diff", diffObject.toString());
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", requestUserId);
+        jsonObject.put("type", NotificationTypeEnum.PLAN_UPDATE.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.TRAVEL_PLAN.getType());
+        jsonObject.put("entityId", travelPlanId);
+        jsonObject.put("content", contentObject.toString());
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override

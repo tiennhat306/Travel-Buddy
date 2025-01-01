@@ -1,5 +1,6 @@
 package com.travelbuddy.persistence.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,5 +19,6 @@ public class PermissionEntity {
     private String name;
 
     @ManyToMany(mappedBy = "permissionEntities")
+    @JsonBackReference
     private Set<GroupEntity> groupEntities;
 }
