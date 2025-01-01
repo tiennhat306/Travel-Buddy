@@ -4,6 +4,9 @@ import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.report.admin.ReportDetailRspnDto;
 import com.travelbuddy.persistence.domain.dto.report.admin.SiteReportRspnDto;
 import com.travelbuddy.persistence.domain.dto.report.admin.SiteReviewReportRspnDto;
@@ -11,6 +14,7 @@ import com.travelbuddy.persistence.domain.dto.report.admin.UserReportRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
 import com.travelbuddy.persistence.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +36,7 @@ public class AdminReportServiceImpl implements AdminReportService {
     private final UserReportRepository userReportRepository;
     private final SiteReviewReportRepository siteReviewReportRepository;
     private final PageMapper pageMapper;
+    private final NotificationProducer notificationProducer;
 
 
     @Override
@@ -82,6 +87,12 @@ public class AdminReportServiceImpl implements AdminReportService {
 
         siteEntity.setEnabled(false);
         siteRepository.save(siteEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", NotificationTypeEnum.SITE_BAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE.getType());
+        jsonObject.put("entityId", siteId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -90,6 +101,12 @@ public class AdminReportServiceImpl implements AdminReportService {
 
         siteEntity.setEnabled(true);
         siteRepository.save(siteEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", NotificationTypeEnum.SITE_UNBAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE.getType());
+        jsonObject.put("entityId", siteId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -116,6 +133,12 @@ public class AdminReportServiceImpl implements AdminReportService {
 
         siteReviewEntity.setEnabled(false);
         siteReviewRepository.save(siteReviewEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", NotificationTypeEnum.REVIEW_BAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE_REVIEW.getType());
+        jsonObject.put("entityId", siteReviewId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -124,6 +147,12 @@ public class AdminReportServiceImpl implements AdminReportService {
 
         siteReviewEntity.setEnabled(true);
         siteReviewRepository.save(siteReviewEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", NotificationTypeEnum.REVIEW_UNBAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE_REVIEW.getType());
+        jsonObject.put("entityId", siteReviewId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -150,6 +179,12 @@ public class AdminReportServiceImpl implements AdminReportService {
 
         userEntity.setEnabled(false);
         userRepository.save(userEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", NotificationTypeEnum.USER_BAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.USER.getType());
+        jsonObject.put("entityId", userId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -158,6 +193,12 @@ public class AdminReportServiceImpl implements AdminReportService {
 
         userEntity.setEnabled(true);
         userRepository.save(userEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("type", NotificationTypeEnum.USER_BAN.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.USER.getType());
+        jsonObject.put("entityId", userId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override

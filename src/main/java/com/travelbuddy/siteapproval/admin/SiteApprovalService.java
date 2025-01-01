@@ -8,4 +8,5 @@ public interface SiteApprovalService {
     void createDefaultSiteApproval(Integer siteVersionId);
     void updateSiteApproval(UpdateSiteApprovalRqstDto updateSiteApprovalRqstDto, Integer adminId);
     PageDto<GeneralViewSiteApprovalRspndDto> getPendingSiteApprovals(int page);
+    Integer getLatestApprovedSiteVersionIdBySiteId(Integer siteId);
 }
