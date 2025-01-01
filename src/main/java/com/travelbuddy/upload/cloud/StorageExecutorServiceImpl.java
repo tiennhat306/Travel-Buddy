@@ -1,23 +1,22 @@
 package com.travelbuddy.upload.cloud;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Slf4j
 @Service
+@Transactional
+@RequiredArgsConstructor
 public class StorageExecutorServiceImpl implements StorageExecutorService{
     private final AsyncTaskExecutor taskExecutor;
 
     private final StorageService storageService;
-
-    public StorageExecutorServiceImpl(AsyncTaskExecutor taskExecutor,
-                                      StorageService storageService) {
-        this.taskExecutor = taskExecutor;
-        this.storageService = storageService;
-    }
 
     @Override
     public void makeFilePermanent(String id) {

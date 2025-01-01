@@ -9,6 +9,9 @@ import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.mapper.SiteReviewMapper;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.*;
 import com.travelbuddy.persistence.domain.entity.FileEntity;
@@ -22,6 +25,7 @@ import com.travelbuddy.site.user.SiteService;
 import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +53,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     private final ReviewReactionRepository reviewReactionRepository;
     private final RequestUtils requestUtils;
     private final SiteService siteService;
+    private final NotificationProducer notificationProducer;
 
     @Override
     public void createSiteReview(SiteReviewCreateRqstDto siteReviewCreateRqstDto) {
@@ -83,6 +88,13 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         }
 
         reviewMediaRepository.saveAll(reviewMediaEntities);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", userId);
+        jsonObject.put("type", NotificationTypeEnum.SITE_COMMENT.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE.getType());
+        jsonObject.put("entityId", siteReviewEntity.getSiteId());
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
@@ -193,6 +205,13 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         }
 
         reviewReactionRepository.save(reviewReactionEntity);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", userId);
+        jsonObject.put("type", NotificationTypeEnum.REVIEW_REACTION.getType());
+        jsonObject.put("entityType", NotiEntityTypeEnum.SITE_REVIEW.getType());
+        jsonObject.put("entityId", reviewId);
+        notificationProducer.sendNotification("notifications", jsonObject.toString());
     }
 
     @Override
