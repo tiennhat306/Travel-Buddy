@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/travel-buddy
     username: postgres
-    password: 123456
+    password: secret
     driver-class-name: org.postgresql.Driver
 
   # Hibernate configuration
@@ -47,9 +47,12 @@ spring:
     bootstrap-servers: pkc-312o0.ap-southeast-1.aws.confluent.cloud:9092   #Kafka broker
     consumer:
       group-id: travel-buddy
-      auto-offset-reset: earliest
+#      auto-offset-reset: earliest
+#      auto-commit-interval: 1000
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: true
+      auto-commit-interval: 1000
     #      enable-auto-commit: true
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

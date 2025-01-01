@@ -65,4 +65,9 @@ public class SiteApprovalServiceImp implements SiteApprovalService {
         Page<SiteApprovalEntity> siteApprovalEntities = siteApprovalRepository.findAllByStatus(null, pageable);
         return pageMapper.toPageDto(siteApprovalEntities.map(GeneralViewSiteApprovalRspndDto::new));
     }
+
+    @Override
+    public Integer getLatestApprovedSiteVersionIdBySiteId(Integer siteId) {
+        return siteApprovalRepository.findLatestApprovedSiteVersionIdBySiteId(siteId).orElse(null);
+    }
 }
