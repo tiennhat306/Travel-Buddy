@@ -170,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService {
                 jsonObject.put("userImageUrl", user.getAvatar() == null ? null : user.getAvatar());
                 jsonObject.put("planId", entityId);
                 jsonObject.put("planName", travelPlan.getName());
-                jsonObject.put("content", content.toString());
+                jsonObject.put("content", content);
                 String fullMessage = jsonObject.getString("userName") + " đã thay đổi kế hoạch của " + jsonObject.getString("planName") + " : " + jsonObject.getString("content");
                 jsonObject.put("fullMessage", fullMessage);
                 jsonObject.put("createdAt", notification.getLastUpdated().toString());
