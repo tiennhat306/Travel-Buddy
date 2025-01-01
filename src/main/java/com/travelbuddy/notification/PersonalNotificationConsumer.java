@@ -113,8 +113,8 @@ public class PersonalNotificationConsumer {
                             if (userIds == null) {
                                 userIds = new JSONArray();
                             }
-                            if (!userIds.toList().contains(entityId)) {
-                                userIds.put(entityId);
+                            if (!userIds.toList().contains(userId)) {
+                                userIds.put(userId);
                                 contentJson.put("userIds", userIds);
                                 notificationEntity.setContent(contentJson.toString());
                                 notificationRepository.save(notificationEntity);
@@ -176,8 +176,8 @@ public class PersonalNotificationConsumer {
                             if (userIds == null) {
                                 userIds = new JSONArray();
                             }
-                            if (!userIds.toList().contains(entityId)) {
-                                userIds.put(entityId);
+                            if (!userIds.toList().contains(userId)) {
+                                userIds.put(userId);
                                 contentJson.put("userIds", userIds);
                                 notificationEntity.setContent(contentJson.toString());
                                 notificationRepository.save(notificationEntity);
@@ -238,8 +238,8 @@ public class PersonalNotificationConsumer {
                             if (userIds == null) {
                                 userIds = new JSONArray();
                             }
-                            if (!userIds.toList().contains(entityId)) {
-                                userIds.put(entityId);
+                            if (!userIds.toList().contains(userId)) {
+                                userIds.put(userId);
                                 contentJson.put("userIds", userIds);
                                 notificationEntity.setContent(contentJson.toString());
                                 notificationRepository.save(notificationEntity);
