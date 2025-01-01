@@ -128,6 +128,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         messageObject.put("endTime", "Đã thay đổi thời gian kết thúc");
 
         JSONObject diffObject = new JSONObject();
+        diffObject.put("userId", requestUserId);
         diffObject.put("from", fromObject);
         diffObject.put("to", toObject);
         diffObject.put("message", messageObject);
@@ -285,6 +286,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         travelPlanSiteRepository.save(travelPlanSiteEntity);
 
         JSONObject contentObject = new JSONObject();
+        contentObject.put("userId", requestUserId);
         contentObject.put("siteId", siteEntity.getId());
         contentObject.put("message", "Đã thêm địa điểm vào kế hoạch");
 
@@ -318,6 +320,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         travelPlanSiteRepository.deleteByTravelPlanIdAndSiteId(travelPlanId, siteId);
 
         JSONObject contentObject = new JSONObject();
+        contentObject.put("userId", requestUserId);
         contentObject.put("siteId", siteEntity.getId());
         contentObject.put("message", "Đã xóa địa điểm khỏi kế hoạch");
 
@@ -370,11 +373,12 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         toObject.put("endTime", travelPlanSiteUpdateRqstDto.getEndTime());
 
         JSONObject messageObject = new JSONObject();
-        messageObject.put("name", "Đã thay đổi tên địa điểm");
-        messageObject.put("startTime", "Đã thay đổi thời gian bắt đầu");
-        messageObject.put("endTime", "Đã thay đổi thời gian kết thúc");
+        messageObject.put("name", "tên địa điểm");
+        messageObject.put("startTime", "thời gian bắt đầu");
+        messageObject.put("endTime", "thời gian kết thúc");
 
         JSONObject diffObject = new JSONObject();
+        diffObject.put("userId", requestUserId);
         diffObject.put("from", fromObject);
         diffObject.put("to", toObject);
         diffObject.put("message", messageObject);

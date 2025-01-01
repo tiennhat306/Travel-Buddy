@@ -45,4 +45,9 @@ public class NotificationEntity {
     public void prePersist() {
         lastUpdated = LocalDateTime.now();
     }
+
+    @PreUpdate
+    public void preUpdate() {
+        lastUpdated = LocalDateTime.now();
+    }
 }

@@ -28,6 +28,9 @@ public class SiteReactionEntity {
     @Column(name = "reaction_type")
     private String reactionType;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", insertable = false, updatable = false)
     private SiteEntity siteEntity;
@@ -35,4 +38,14 @@ public class SiteReactionEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity userEntity;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        createdAt = LocalDateTime.now();
+    }
 }
