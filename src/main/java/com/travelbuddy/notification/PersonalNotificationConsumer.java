@@ -288,7 +288,7 @@ public class PersonalNotificationConsumer {
                             contentJson.put("planName",travelPlanEntity.getName());
                             JSONObject jsonContent = new JSONObject(content);
                             contentJson.put("content", jsonContent);
-                            String fullMessage = contentJson.getString("userName") + " đã thay đổi kế hoạch của " + contentJson.getString("planName") + " : " + contentJson.getString("content");
+                            String fullMessage = contentJson.getString("userName") + " đã thay đổi kế hoạch của " + contentJson.getString("planName");
                             contentJson.put("fullMessage", fullMessage);
                             sendNotification(destinationUserId, contentJson.toString());
                         }
