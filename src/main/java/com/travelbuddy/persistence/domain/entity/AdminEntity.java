@@ -13,6 +13,7 @@ import java.util.Set;
 @EqualsAndHashCode
 @Entity
 @Table(name = "admins")
+@ToString(exclude = {"groupEntities"})
 public class AdminEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
