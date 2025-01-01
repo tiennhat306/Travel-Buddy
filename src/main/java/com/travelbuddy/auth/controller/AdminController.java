@@ -4,7 +4,10 @@ import com.travelbuddy.admin.AdminService;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.groups.admin.GroupService;
 import com.travelbuddy.persistence.domain.dto.account.admin.AdminDetailRspnDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.AdminResetPasswordRqstDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.CreateAdminRqstDto;
 import com.travelbuddy.persistence.domain.dto.account.admin.GenericAssociationRqstDto;
+import com.travelbuddy.persistence.domain.dto.auth.ResetPasswordRqstDto;
 import com.travelbuddy.persistence.domain.entity.AdminEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -99,5 +102,33 @@ public class AdminController {
     public ResponseEntity<Object> detachPermission(@RequestBody @Valid GenericAssociationRqstDto requestDto) {
         adminService.detachPermissionFromGroup(requestDto.getParentId(), requestDto.getDependencyIds());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/admin-accounts")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> createNewAdmin(@RequestBody @Valid CreateAdminRqstDto createAdminRqstDto) {
+        Integer adminId = adminService.createAdmin(createAdminRqstDto);
+        return ResponseEntity.created(null).build();
+    }
+
+    @PutMapping("/admin-accounts/disable/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> disableAdmin(@PathVariable int id) {
+        adminService.disableAdmin(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/admin-accounts/enable/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> enableAdmin(@PathVariable int id) {
+        adminService.enableAdmin(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/admin-accounts/reset-password")
+    @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
+    public ResponseEntity<Object> resetPassword(@RequestBody @Valid AdminResetPasswordRqstDto adminResetPasswordRqstDto) {
+        adminService.resetPassword(adminResetPasswordRqstDto);
+        return ResponseEntity.ok().build();
     }
 }

@@ -7,7 +7,11 @@ import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.groups.admin.GroupService;
 import com.travelbuddy.mapper.AdminMapper;
 import com.travelbuddy.persistence.domain.dto.account.admin.AdminDetailRspnDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.AdminResetPasswordRqstDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.AdminUpdateRqstDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.CreateAdminRqstDto;
 import com.travelbuddy.persistence.domain.entity.AdminEntity;
+import com.travelbuddy.persistence.domain.entity.FileEntity;
 import com.travelbuddy.persistence.domain.entity.GroupEntity;
 import com.travelbuddy.persistence.domain.entity.PermissionEntity;
 import com.travelbuddy.persistence.repository.AdminRepository;
@@ -18,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.swing.*;
@@ -32,6 +37,7 @@ public class AdminServiceImpl implements AdminService {
     private final PageMapper pageMapper;
     private final GroupRepository groupRepository;
     private final PermissionRepository permissionRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public int getAdminIdByEmail(String email) {
@@ -109,5 +115,47 @@ public class AdminServiceImpl implements AdminService {
 
         groupEntity.getPermissionEntities().removeAll(permissionEntities);
         groupRepository.save(groupEntity);
+    }
+
+    @Override
+    public Integer createAdmin(CreateAdminRqstDto createAdminRqstDto) {
+        AdminEntity adminEntity = createAdminRqstDto.mapToEntity();
+        adminEntity.setPassword(passwordEncoder.encode(createAdminRqstDto.getPassword()));
+        return adminRepository.save(adminEntity).getId();
+    }
+
+    @Override
+    public void updateAdmin(AdminUpdateRqstDto adminUpdateRqstDto) {
+        AdminEntity adminEntity = adminRepository.findById(adminUpdateRqstDto.getId())
+                .orElseThrow(() -> new NotFoundException("Admin with id not found"));
+        adminEntity.setFullName(adminUpdateRqstDto.getFullName());
+        adminEntity.setGender(adminUpdateRqstDto.getGender());
+        adminEntity.setAddress(adminUpdateRqstDto.getAddress());
+        adminEntity.setPhoneNumber(adminUpdateRqstDto.getPhoneNumber());
+        adminEntity.setEnabled(adminUpdateRqstDto.isEnabled());
+        adminEntity.setPassword(passwordEncoder.encode(adminUpdateRqstDto.getPassword()));
+        adminEntity.setAvatar(FileEntity.builder().id(adminUpdateRqstDto.getAvatarId()).url(adminUpdateRqstDto.getAvatarUrl()).build());
+        adminRepository.save(adminEntity);
+    }
+
+    @Override
+    public void disableAdmin(int id) {
+        AdminEntity admin = adminRepository.findById(id).orElseThrow(() -> new NotFoundException("Not found admin"));
+        admin.setEnabled(false);
+        adminRepository.save(admin);
+    }
+
+    @Override
+    public void enableAdmin(int id) {
+        AdminEntity admin = adminRepository.findById(id).orElseThrow(() -> new NotFoundException("Not found admin"));
+        admin.setEnabled(true);
+        adminRepository.save(admin);
+    }
+
+    @Override
+    public void resetPassword(AdminResetPasswordRqstDto adminResetPasswordRqstDto) {
+        AdminEntity admin = adminRepository.findById(adminResetPasswordRqstDto.getAdminId()).orElseThrow(() -> new NotFoundException("Not found admin"));
+        admin.setPassword(passwordEncoder.encode(adminResetPasswordRqstDto.getPassword()));
+        adminRepository.save(admin);
     }
 }
