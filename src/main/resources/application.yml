@@ -4,9 +4,9 @@ spring:
 
   # PostgreSQL datasource configuration
   datasource:
-    url: jdbc:postgresql://autorack.proxy.rlwy.net:27888/railway
+    url: jdbc:postgresql://junction.proxy.rlwy.net:54042/railway
     username: postgres
-    password: "kXYVITxzwgcYwusMHCMpdnEsQuTjEeIh"
+    password: ILLzJDEOjigFyqiYLtnHRpjvnudBJoms
     driver-class-name: org.postgresql.Driver
 
   # Hibernate configuration
