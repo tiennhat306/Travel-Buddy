@@ -25,6 +25,9 @@ public class ReviewReactionEntity {
     @Column(name = "reaction_type")
     private String reactionType;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id", insertable = false, updatable = false)
     private SiteReviewEntity siteReviewEntity;
@@ -32,4 +35,14 @@ public class ReviewReactionEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity userEntity;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        createdAt = LocalDateTime.now();
+    }
 }

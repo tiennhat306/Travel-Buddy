@@ -34,14 +34,12 @@ public class CustomHandshakeHandler implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
         String token = request.getURI().getQuery();
         System.out.println(token);
-        if (token != null) {
-            int reuqestUserId = Integer.parseInt(token.substring(7, token.indexOf('&')));
-            token = token.substring(token.indexOf('&') + 7);
+        if (token != null && token.startsWith("token=")) {
+            token = token.substring(6);
             System.out.println(token);
-            System.out.println(reuqestUserId);
             Integer userId = validateAndExtractUserIdFromToken(token); // Xác thực và lấy userId
             attributes.put("userId", userId);
-            if (userId != null && userId.equals(reuqestUserId)) {
+            if (userId != null) {
                 return true;
             }
         }

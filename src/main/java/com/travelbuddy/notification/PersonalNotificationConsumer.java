@@ -1,6 +1,7 @@
 package com.travelbuddy.notification;
 
 import com.google.gson.JsonObject;
+import com.travelbuddy.common.constants.ReactionTypeEnum;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
@@ -11,6 +12,7 @@ import com.travelbuddy.sitereviews.SiteReviewService;
 import com.travelbuddy.siteversion.user.SiteVersionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaHandler;
@@ -36,6 +38,7 @@ public class PersonalNotificationConsumer {
     private final SiteService siteService;
     private final SiteReviewRepository siteReviewRepository;
     private final TravelPlanRepository travelPlanRepository;
+    private final SiteReactionRepository siteReactionRepository;
 
     @KafkaHandler
     public void consume(String message) {
@@ -95,10 +98,13 @@ public class PersonalNotificationConsumer {
                             contentJson.put("userId", userId);
                             contentJson.put("userName", userEntity.getFullName());
                             contentJson.put("userImageUrl", userEntity.getAvatar() != null ? userEntity.getAvatar().getUrl() : null);
-                            contentJson.put("message", "Đã bình luận về địa điểm");
+                            contentJson.put("message", " Đã bình luận về địa điểm ");
                             contentJson.put("siteId", entityId);
                             contentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                             contentJson.put("siteReview", siteReviewEntity.getComment());
+                            String fullMessage = contentJson.getString("userName") + contentJson.getString("message")
+                                    + contentJson.getString("siteName") + " : " + contentJson.getString("siteReview");
+                            contentJson.put("fullMessage", fullMessage);
                             sendNotification(destinationUserId, contentJson.toString());
                         } else {
                             String content = notificationEntity.getContent();
@@ -118,11 +124,17 @@ public class PersonalNotificationConsumer {
                                 newContentJson.put("userId", userId);
                                 newContentJson.put("userName", userEntity.getFullName());
                                 newContentJson.put("userImageUrl", userEntity.getAvatar() != null ? userEntity.getAvatar().getUrl() : null);
-                                newContentJson.put("message", "Đã bình luận về địa điểm");
+                                newContentJson.put("message", " Đã bình luận về địa điểm ");
                                 newContentJson.put("siteId", entityId);
                                 newContentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                                 newContentJson.put("siteReview", siteReviewEntity.getComment());
                                 newContentJson.put("countOther", siteEntity.getSiteReviewEntities().size() - 1);
+                                String optFullMessage = newContentJson.getInt("countOther") > 0
+                                        ? " Và " + String.valueOf(newContentJson.getInt("countOther")) + " người khác"
+                                        : "";
+                                String fullMessage = newContentJson.getString("userName") + optFullMessage +  newContentJson.getString("message")
+                                        + newContentJson.getString("siteName") + " : " + newContentJson.getString("siteReview");
+                                newContentJson.put("fullMessage", fullMessage);
                                 sendNotification(destinationUserId, newContentJson.toString());
                             }
                         }
@@ -130,7 +142,6 @@ public class PersonalNotificationConsumer {
                     break;
                 }
                 case SITE_REACTION: {
-                    System.out.println("In here");
                     int userId = payload.getInt("userId");
                     UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
                     if (entityType == NotiEntityTypeEnum.SITE.getType()) {
@@ -151,9 +162,12 @@ public class PersonalNotificationConsumer {
                             contentJson.put("userId", userId);
                             contentJson.put("userName", userEntity.getFullName());
                             contentJson.put("userImageUrl", userEntity.getAvatar() != null ? userEntity.getAvatar().getUrl() : null);
-                            contentJson.put("message", "Đã thích địa điểm");
+                            contentJson.put("message", " Đã thích địa điểm ");
                             contentJson.put("siteId", entityId);
                             contentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
+                            String fullMessage = contentJson.getString("userName") + contentJson.getString("message")
+                                    + contentJson.getString("siteName") + " của bạn";
+                            contentJson.put("fullMessage", fullMessage);
                             sendNotification(destinationUserId, contentJson.toString());
                         } else {
                             String content = notificationEntity.getContent();
@@ -172,10 +186,16 @@ public class PersonalNotificationConsumer {
                                 newContentJson.put("userId", userId);
                                 newContentJson.put("userName", userEntity.getFullName());
                                 newContentJson.put("userImageUrl", userEntity.getAvatar() != null ? userEntity.getAvatar().getUrl() : null);
-                                newContentJson.put("message", "Đã thích địa điểm");
+                                newContentJson.put("message", " Đã thích địa điểm ");
                                 newContentJson.put("siteId", entityId);
                                 newContentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
-                                newContentJson.put("countOther", siteEntity.getSiteReactions().size() - 1);
+                                newContentJson.put("countOther", siteReactionRepository.countBySiteIdAndReactionType(entityId, ReactionTypeEnum.LIKE.name()) - 1);
+                                String optFullMessage = newContentJson.getInt("countOther") > 0
+                                        ? " Và " + String.valueOf(newContentJson.getInt("countOther")) + " người khác"
+                                        : "";
+                                String fullMessage = newContentJson.getString("userName") + optFullMessage + newContentJson.getString("message")
+                                        + newContentJson.getString("siteName") + " của bạn";
+                                newContentJson.put("fullMessage", fullMessage);
                                 sendNotification(destinationUserId, newContentJson.toString());
                             }
                         }
@@ -203,10 +223,13 @@ public class PersonalNotificationConsumer {
                             contentJson.put("userId", userId);
                             contentJson.put("userName", userEntity.getFullName());
                             contentJson.put("userImageUrl", userEntity.getAvatar() != null ? userEntity.getAvatar().getUrl() : null);
-                            contentJson.put("message", "Đã thích bài đánh giá");
+                            contentJson.put("message", " Đã thích bài đánh giá về địa điểm ");
                             contentJson.put("siteId", siteReviewEntity.getSiteId());
                             contentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                             contentJson.put("siteReview", siteReviewEntity.getComment());
+                            String fullMessage = contentJson.getString("userName") + contentJson.getString("message")
+                                    + contentJson.getString("siteName") + " : " + contentJson.getString("siteReview");
+                            contentJson.put("fullMessage", fullMessage);
                             sendNotification(destinationUserId, contentJson.toString());
                         } else {
                             String content = notificationEntity.getContent();
@@ -225,11 +248,17 @@ public class PersonalNotificationConsumer {
                                 newContentJson.put("userId", userId);
                                 newContentJson.put("userName", userEntity.getFullName());
                                 newContentJson.put("userImageUrl", userEntity.getAvatar() != null ? userEntity.getAvatar().getUrl() : null);
-                                newContentJson.put("message", "Đã thích bài đánh giá");
+                                newContentJson.put("message", " Đã thích bài đánh giá về địa điểm");
                                 newContentJson.put("siteId", siteReviewEntity.getSiteId());
                                 newContentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                                 newContentJson.put("siteReview", siteReviewEntity.getComment());
                                 newContentJson.put("countOther", siteReviewEntity.getReviewReactions().size() - 1);
+                                String optFullMessage = newContentJson.getInt("countOther") > 0
+                                        ? " Và " + String.valueOf(newContentJson.getInt("countOther")) + " người khác"
+                                        : "";
+                                String fullMessage = newContentJson.getString("userName") + optFullMessage + newContentJson.getString("message")
+                                        + newContentJson.getString("siteName") + " : " + newContentJson.getString("siteReview");
+                                newContentJson.put("fullMessage", fullMessage);
                                 sendNotification(destinationUserId, newContentJson.toString());
                             }
                         }
@@ -258,6 +287,8 @@ public class PersonalNotificationConsumer {
                             contentJson.put("planId", entityId);
                             contentJson.put("planName",travelPlanEntity.getName());
                             contentJson.put("content", content);
+                            String fullMessage = contentJson.getString("userName") + " đã thay đổi kế hoạch của " + contentJson.getString("planName") + " : " + contentJson.getString("content");
+                            contentJson.put("fullMessage", fullMessage);
                             sendNotification(destinationUserId, contentJson.toString());
                         }
                     }
@@ -274,6 +305,8 @@ public class PersonalNotificationConsumer {
                         contentJson.put("siteId", entityId);
                         contentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                         contentJson.put("message", "Hệ thống đã khóa địa điểm của bạn");
+                        String fullMessage = contentJson.getString("message") + " " + contentJson.getString("siteName");
+                        contentJson.put("fullMessage", fullMessage);
                         sendNotification(destinationUserId, contentJson.toString());
                     }
                     break;
@@ -289,6 +322,8 @@ public class PersonalNotificationConsumer {
                         contentJson.put("siteId", entityId);
                         contentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                         contentJson.put("message", "Hệ thống đã mở khóa địa điểm của bạn");
+                        String fullMessage = contentJson.getString("message") + " " + contentJson.getString("siteName");
+                        contentJson.put("fullMessage", fullMessage);
                         sendNotification(destinationUserId, contentJson.toString());
                     }
                     break;
@@ -307,6 +342,8 @@ public class PersonalNotificationConsumer {
                         contentJson.put("siteReviewId", entityId);
                         contentJson.put("siteReview", siteReviewEntity.getComment());
                         contentJson.put("message", "Hệ thống đã khóa bài đánh giá của bạn");
+                        String fullMessage = contentJson.getString("message") + " " + contentJson.getString("siteName") + " : " + contentJson.getString("siteReview");
+                        contentJson.put("fullMessage", fullMessage);
                         sendNotification(destinationUserId, contentJson.toString());
                     }
                     break;
@@ -325,6 +362,8 @@ public class PersonalNotificationConsumer {
                         contentJson.put("siteReviewId", entityId);
                         contentJson.put("siteReview", siteReviewEntity.getComment());
                         contentJson.put("message", "Hệ thống đã mở khóa bài đánh giá của bạn");
+                        String fullMessage = contentJson.getString("message") + " " + contentJson.getString("siteName") + " : " + contentJson.getString("siteReview");
+                        contentJson.put("fullMessage", fullMessage);
                         sendNotification(destinationUserId, contentJson.toString());
                     }
                     break;
