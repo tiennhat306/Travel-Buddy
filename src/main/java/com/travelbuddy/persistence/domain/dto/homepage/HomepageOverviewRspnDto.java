@@ -6,14 +6,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class HomepageOverviewRspnDto {
-    private int totalUsers;
-    private int totalAdmins;
+    private long totalUsers;
+    private long totalAdmins;
 
-    private int pendingUserReports;
-    private int pendingSiteReports;
-    private int pendingReviewReports;
+    private long pendingUserReports;
+    private long pendingSiteReports;
+    private long pendingReviewReports;
 
-    private int totalPendingApprovals;
+    private long totalPendingApprovals;
 
-    private int totalSites;
+    private long totalSites;
 }

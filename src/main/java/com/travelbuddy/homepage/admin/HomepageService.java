@@ -1,5 +1,7 @@
 package com.travelbuddy.homepage.admin;
 
-public interface HomepageService {
+import com.travelbuddy.persistence.domain.dto.homepage.HomepageOverviewRspnDto;
 
+public interface HomepageService {
+    HomepageOverviewRspnDto getHomepageOverview();
 }
