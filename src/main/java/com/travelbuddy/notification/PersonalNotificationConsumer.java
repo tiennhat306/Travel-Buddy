@@ -40,12 +40,6 @@ public class PersonalNotificationConsumer {
     @KafkaHandler
     public void consume(String message) {
         // Parse message
-        System.out.println("consume message: " + message);
-
-        String queue = "/queue/user-" + 1;
-        System.out.println("Sending notification to " + queue + ": " + message);
-        messagingTemplate.convertAndSend(queue, message);
-
         JSONObject payload = new JSONObject(message);
 
         int type = payload.getInt("type");
@@ -128,6 +122,7 @@ public class PersonalNotificationConsumer {
                                 newContentJson.put("siteId", entityId);
                                 newContentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                                 newContentJson.put("siteReview", siteReviewEntity.getComment());
+                                newContentJson.put("countOther", siteEntity.getSiteReviewEntities().size() - 1);
                                 sendNotification(destinationUserId, newContentJson.toString());
                             }
                         }
@@ -180,6 +175,7 @@ public class PersonalNotificationConsumer {
                                 newContentJson.put("message", "Đã thích địa điểm");
                                 newContentJson.put("siteId", entityId);
                                 newContentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
+                                newContentJson.put("countOther", siteEntity.getSiteReactions().size() - 1);
                                 sendNotification(destinationUserId, newContentJson.toString());
                             }
                         }
@@ -233,6 +229,7 @@ public class PersonalNotificationConsumer {
                                 newContentJson.put("siteId", siteReviewEntity.getSiteId());
                                 newContentJson.put("siteName", siteBasicInfoRspnDto.getSiteName());
                                 newContentJson.put("siteReview", siteReviewEntity.getComment());
+                                newContentJson.put("countOther", siteReviewEntity.getReviewReactions().size() - 1);
                                 sendNotification(destinationUserId, newContentJson.toString());
                             }
                         }
