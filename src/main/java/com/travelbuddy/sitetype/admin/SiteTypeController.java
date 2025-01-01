@@ -1,18 +1,14 @@
 package com.travelbuddy.sitetype.admin;
 
 import com.travelbuddy.aspectsbytype.admin.AspectsByTypeService;
-import com.travelbuddy.common.constants.PaginationLimitConstants;
 import com.travelbuddy.common.exception.errorresponse.DataAlreadyExistsException;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
-import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.persistence.domain.dto.aspectsbytype.AspectsByTypeCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.aspectsbytype.AspectsByTypeEditRqstDto;
 import com.travelbuddy.persistence.domain.entity.AspectsByTypeEntity;
-import com.travelbuddy.persistence.domain.entity.SiteTypeEntity;
 import com.travelbuddy.persistence.repository.AspectsByTypeRepository;
 import com.travelbuddy.persistence.repository.SiteTypeRepository;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeCreateRqstDto;
-import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeRspnDto;
 import com.travelbuddy.servicegroup.admin.ServiceGroupService;
 import com.travelbuddy.systemlog.admin.SystemLogService;
 import jakarta.validation.*;

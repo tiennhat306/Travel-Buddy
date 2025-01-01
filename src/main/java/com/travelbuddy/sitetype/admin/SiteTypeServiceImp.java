@@ -25,8 +25,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.travelbuddy.common.constants.PaginationLimitConstants.SITE_TYPE_LIMIT;
-
 @Service
 @RequiredArgsConstructor
 public class SiteTypeServiceImp implements SiteTypeService {
