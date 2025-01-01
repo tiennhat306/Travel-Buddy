@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "sites")
-@ToString(exclude = {"userEntity", "travelPlanEntities", "siteVersionEntities", "siteReviewEntities", "siteReactions"})
+@ToString(exclude = {"userEntity", "travelPlanEntities", "siteVersionEntities", "siteReviewEntities", "siteReactions", "siteMedias", "siteReports"})
 public class SiteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +19,9 @@ public class SiteEntity {
 
     @Column(name = "owner_id", nullable = false)
     private Integer ownerId;
+
+    @Column(name = "enabled")
+    private boolean enabled = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", insertable = false, updatable = false)
@@ -38,4 +41,7 @@ public class SiteEntity {
 
     @OneToMany(mappedBy = "site", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SiteMediaEntity> siteMedias;
+
+    @OneToMany(mappedBy = "siteEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SiteReportEntity> siteReports;
 }
