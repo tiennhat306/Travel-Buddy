@@ -175,6 +175,19 @@ public class NotificationServiceImpl implements NotificationService {
                 jsonObject.put("fullMessage", fullMessage);
                 jsonObject.put("createdAt", notification.getLastUpdated().toString());
             }
+            case SITE_APPROVE: {
+                if (entityType != NotiEntityTypeEnum.SITE.getType()) {
+                    break;
+                }
+                SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);
+                jsonObject.put("siteId", entityId);
+                jsonObject.put("siteName", siteBasicInfoRspnDto.getSiteName());
+                jsonObject.put("message", "Hệ thống đã phê duyệt thông tin địa điểm của bạn");
+                String fullMessage = jsonObject.getString("message") + " : " + jsonObject.getString("siteName");
+                jsonObject.put("fullMessage", fullMessage);
+                jsonObject.put("createdAt", notification.getLastUpdated().toString());
+                break;
+            }
             case SITE_BAN: {
                 if (entityType != NotiEntityTypeEnum.SITE.getType()) {
                     break;
