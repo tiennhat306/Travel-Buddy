@@ -40,7 +40,8 @@ public class SiteReviewEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "enabled")
+    @Column(name = "enabled", nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -63,6 +64,7 @@ public class SiteReviewEntity {
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
+        enabled = true;
     }
 
     @PreUpdate

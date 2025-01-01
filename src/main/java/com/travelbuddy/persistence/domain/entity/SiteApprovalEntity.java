@@ -2,10 +2,7 @@ package com.travelbuddy.persistence.domain.entity;
 
 import com.travelbuddy.common.constants.ApprovalStatusEnum;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
@@ -18,6 +15,7 @@ import java.util.List;
 @Entity
 @Builder
 @Table(name = "site_approvals")
+@ToString(exclude = {"siteVersion"})
 public class SiteApprovalEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

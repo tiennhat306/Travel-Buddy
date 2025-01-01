@@ -58,13 +58,6 @@ public class SiteController {
         // Success block
         Integer siteVersionId = latestApprovedVersionId.get();
         SiteRepresentationDto representationDto = siteVersionService.getSiteVersionView(siteVersionId);
-        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
-                .siteId(siteId)
-                .behavior("VIEW_SITE")
-                .build();
-        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok(representationDto);
     }
 
@@ -116,13 +109,6 @@ public class SiteController {
     public ResponseEntity<Object> getSiteReviews(@PathVariable int siteId,
                                                  @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
         PageDto<SiteReviewRspnDto> siteTypesPage = siteReviewService.getAllSiteReviews(siteId, page);
-        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
-                .siteId(siteId)
-                .behavior("READ_REVIEWS")
-                .build();
-        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok(siteTypesPage);
     }
 
@@ -161,14 +147,6 @@ public class SiteController {
         }
 
         PageDto<SiteBasicInfoRspnDto> siteSearchRspnDto = siteService.searchSites(siteSearch, page);
-        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .userId(userService.getUserIdByEmailOrUsername(SecurityContextHolder.getContext().getAuthentication().getName()))
-                .siteId(null)
-                .behavior("SEARCH_SITE")
-                .extraInfo(siteSearch)
-                .build();
-        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok(siteSearchRspnDto);
     }
 

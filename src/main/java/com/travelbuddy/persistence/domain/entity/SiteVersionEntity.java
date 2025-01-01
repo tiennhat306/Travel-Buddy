@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "site_versions")
+@ToString(exclude = {"siteType", "siteEntity", "siteApprovalEntity", "fees"})
 public class SiteVersionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

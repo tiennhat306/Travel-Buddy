@@ -20,7 +20,8 @@ public class SiteEntity {
     @Column(name = "owner_id", nullable = false)
     private Integer ownerId;
 
-    @Column(name = "enabled")
+    @Column(name = "enabled", nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,4 +45,9 @@ public class SiteEntity {
 
     @OneToMany(mappedBy = "siteEntity", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SiteReportEntity> siteReports;
+
+    @PrePersist
+    public void prePersist() {
+        this.enabled = true;
+    }
 }

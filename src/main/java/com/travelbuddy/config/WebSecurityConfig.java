@@ -86,6 +86,14 @@ public class WebSecurityConfig {
         http.securityMatcher("/api/**")
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/sites/*",
+                                "/api/sites/search",
+                                "/api/sites/discover",
+                                "/api/sites/@",
+                                "/api/sites/*/reviews" // Đảm bảo các review không cần auth
+                        ).permitAll()
+                        .requestMatchers("/api/sites/my-sites").authenticated()
                         .anyRequest().authenticated()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
