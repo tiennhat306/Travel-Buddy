@@ -51,6 +51,5 @@ public class CustomHandshakeHandler implements HandshakeInterceptor {
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Exception exception) {
-        String.format("%s commented on bài viết của bạn: ""abcc....",  a, b);
     }
 }
