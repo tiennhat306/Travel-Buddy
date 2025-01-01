@@ -4,9 +4,9 @@ spring:
 
   # PostgreSQL datasource configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/travel-buddy
+    url: jdbc:postgresql://autorack.proxy.rlwy.net:27888/railway
     username: postgres
-    password: secret
+    password: "kXYVITxzwgcYwusMHCMpdnEsQuTjEeIh"
     driver-class-name: org.postgresql.Driver
 
   # Hibernate configuration
@@ -18,8 +18,10 @@ spring:
   data:
     # Redis configuration
     redis:
-      host: localhost
-      port: 6379
+      host: junction.proxy.rlwy.net
+      port: 41831
+      database: 0
+      password: NLUIxnnlgWoberzDlXFFvuxdlffMPZEL
 
   servlet:
     multipart:
@@ -28,7 +30,7 @@ spring:
 
   flyway:
     locations: classpath:db/migration,classpath:db/seeding
-    baseline-on-migrate: true
+    baseline-on-migrate: false
     ignore-migration-patterns: '*:ignored'
     # out-of-order: true
 
