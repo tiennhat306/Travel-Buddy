@@ -39,4 +39,6 @@ public interface SiteVersionRepository extends JpaRepository<SiteVersionEntity, 
     @Query("SELECT sv FROM SiteVersionEntity sv JOIN SiteEntity s ON sv.siteId = s.id WHERE s.ownerId = :ownerId")
     Page<SiteVersionEntity> findAllByOwnerId(Integer ownerId, Pageable pageable);
 
+    @Query("SELECT sv FROM SiteVersionEntity sv JOIN SiteApprovalEntity sa ON sv.id = sa.siteVersionId WHERE sa.status = 'APPROVED' AND sv.siteType.id IN :typeIds ORDER BY RANDOM() LIMIT :limit")
+    List<SiteVersionEntity> findBySiteTypeIds(@Param("typeIds") List<Integer> typeIds, @Param("limit") int limit);
 }

@@ -30,4 +30,8 @@ public interface TravelPlanUserRepository extends JpaRepository<TravelPlanUserEn
     @Modifying
     @Query("DELETE FROM TravelPlanUserEntity tpu WHERE tpu.id.travelPlanEntity.id = :travelPlanId AND tpu.id.userEntity.id = :userId")
     void deleteByTravelPlanIdAndUserId(int travelPlanId, int userId);
+
+    // get owner
+    @Query("SELECT tpu FROM TravelPlanUserEntity tpu WHERE tpu.id.travelPlanEntity.id = :travelPlanId AND tpu.role = 'OWNER'")
+    Optional<TravelPlanUserEntity> findOwnerByTravelPlanId(int travelPlanId);
 }

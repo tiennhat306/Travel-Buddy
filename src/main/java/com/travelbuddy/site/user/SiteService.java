@@ -17,4 +17,6 @@ public interface SiteService {
     PageDto<SiteBasicInfoRspnDto> searchSites(String siteSearch, int page);
 
     PageDto<SiteBasicInfoRspnDto> discoverSites(int page);
+
+    List<SiteBasicInfoRspnDto> getSiteBasicRepresentationByType(List<Integer> typeIds);
 }

@@ -25,6 +25,7 @@ import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -257,5 +259,17 @@ public class SiteServiceImp implements SiteService {
         Page<SiteVersionEntity> siteVersionEntities = siteVersionRepository.findAll(spec, pageable);
 
         return pageMapper.toPageDto(siteVersionEntities.map(SiteBasicInfoRspnDto::new));
+    }
+
+    @Override
+    public List<SiteBasicInfoRspnDto> getSiteBasicRepresentationByType(List<Integer> typeIds) {
+        List<SiteVersionEntity> siteVersionEntities = siteVersionRepository.findBySiteTypeIds(typeIds, typeIds.size() * 5);
+
+        List<SiteBasicInfoRspnDto> siteBasicInfoRspnDtos = new ArrayList<>();
+        for (SiteVersionEntity siteVersionEntity : siteVersionEntities) {
+            siteBasicInfoRspnDtos.add(new SiteBasicInfoRspnDto(siteVersionEntity));
+        }
+
+        return siteBasicInfoRspnDtos;
     }
 }

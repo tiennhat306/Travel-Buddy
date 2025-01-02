@@ -3,6 +3,10 @@ package com.travelbuddy.config;
 import com.travelbuddy.auth.filter.BearerTokenAuthenticationFilter;
 import com.travelbuddy.auth.token.jwt.JWTAuthenticationProvider;
 import com.travelbuddy.auth.token.jwt.JWTProcessor;
+import com.travelbuddy.persistence.repository.AdminRepository;
+import com.travelbuddy.persistence.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.admin.Admin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -29,7 +33,11 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class WebSecurityConfig {
+    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
+
     @Bean
     @Order(1)
     public SecurityFilterChain webSocketSecurityFilterChain(HttpSecurity http,
@@ -112,7 +120,7 @@ public class WebSecurityConfig {
     }
 
     private AuthenticationProvider jwtAuthProvider(JWTProcessor jwtProcessor) {
-        return new JWTAuthenticationProvider(jwtProcessor);
+        return new JWTAuthenticationProvider(jwtProcessor, userRepository, adminRepository);
     }
 
     CorsConfigurationSource corsConfigurationSource() {

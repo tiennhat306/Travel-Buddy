@@ -10,5 +10,4 @@ public interface PersonalizationService {
     List<AssociationSiteTypeAndSiteDto> getAssociationSiteTypeAndSiteDto();
     InitiationPersonalizationDto getChoices();
     Object submitChoices(Integer userId, List<Integer> choices);
-    Object getRecommendations(Integer userId);
 }

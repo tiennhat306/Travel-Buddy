@@ -26,11 +26,4 @@ public class PersonalizationController {
         Object res = personalizationService.submitChoices(userId, personalizeSubmitRqstDto.getSelectedIds());
         return ResponseEntity.ok(res);
     }
-
-    @GetMapping("/recommendations")
-    public ResponseEntity<Object> getRecommendations() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Integer userId = userService.getUserIdByEmailOrUsername(username);
-        return ResponseEntity.ok(personalizationService.getRecommendations(userId));
-    }
 }

@@ -17,6 +17,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
     boolean existsByEmail(String email);
 
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN TRUE ELSE FALSE END FROM UserEntity u WHERE u.email = :email AND u.enabled = TRUE")
+    boolean existsAndEnabledByEmail(String email);
+
     @Modifying
     @Query("DELETE FROM UserEntity u WHERE u.enabled = false AND u.createdAt < :thresholdDate")
     void deleteUnverifiedUsers(LocalDateTime thresholdDate);

@@ -9,7 +9,7 @@ import com.travelbuddy.persistence.domain.entity.SiteVersionEntity;
 import com.travelbuddy.persistence.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,23 +19,16 @@ import java.util.*;
 import static com.travelbuddy.common.constants.ExternalLinkConstant.AI_SERVER_URL;
 import static com.travelbuddy.common.constants.PaginationLimitConstants.PERSONALIZATION_LIMIT;
 
+@Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class PersonalizationServiceImp implements PersonalizationService {
     private final SiteRepository siteRepository;
     private final SiteVersionRepository siteVersionRepository;
     private final SiteApprovalRepository siteApprovalRepository;
     private final SiteMediaRepository siteMediaRepository;
     private final RestTemplate restTemplate;
-
-    @Autowired
-    public PersonalizationServiceImp(SiteRepository siteRepository, SiteVersionRepository siteVersionRepository, SiteApprovalRepository siteApprovalRepository, SiteMediaRepository siteMediaRepository, RestTemplate restTemplate) {
-        this.siteRepository = siteRepository;
-        this.siteVersionRepository = siteVersionRepository;
-        this.siteApprovalRepository = siteApprovalRepository;
-        this.siteMediaRepository = siteMediaRepository;
-        this.restTemplate = restTemplate;
-    }
 
     public List<AssociationSiteTypeAndSiteDto> getAssociationSiteTypeAndSiteDto() {
         List<SiteEntity> allSites = siteRepository.findAll();
@@ -82,7 +75,7 @@ public class PersonalizationServiceImp implements PersonalizationService {
 
     @Override
     public Object submitChoices(Integer userId, List<Integer> choices) {
-        CreatePersonalizeRqstDto createPersonalizeRqstDto = new CreatePersonalizeRqstDto(userId, choices);
+        CreatePersonalizeRqstDto createPersonalizeRqstDto = new CreatePersonalizeRqstDto(2, choices);
         return postToAiServer(createPersonalizeRqstDto);
     }
 
@@ -97,32 +90,12 @@ public class PersonalizationServiceImp implements PersonalizationService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 return response.getBody();
             } else {
-                System.out.println("Request failed");
-                throw new RuntimeException("Request failed");
+                log.error("Request failed {}", response.getBody());
+                throw new RuntimeException("Request failed " + response.getBody());
             }
         } catch (Exception e) {
-            System.out.println("Request failed");
-            throw new RuntimeException("Request failed");
-        }
-    }
-
-    @Override
-    public Object getRecommendations(Integer userId) {
-        String apiUrl = AI_SERVER_URL + "recommend/" + userId;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, requestEntity, String.class);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return response.getBody();
-            } else {
-                System.out.println("Request failed");
-                throw new RuntimeException("Request failed");
-            }
-        } catch (Exception e) {
-            System.out.println("Request failed");
-            throw new RuntimeException("Request failed");
+            log.error("Request failed {}", e.getMessage(), e);
+            throw new RuntimeException("Request failed " + e.getMessage());
         }
     }
 }
