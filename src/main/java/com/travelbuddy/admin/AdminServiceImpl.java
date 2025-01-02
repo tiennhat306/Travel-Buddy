@@ -7,10 +7,7 @@ import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.groups.admin.GroupService;
 import com.travelbuddy.mapper.AdminMapper;
-import com.travelbuddy.persistence.domain.dto.account.admin.AdminDetailRspnDto;
-import com.travelbuddy.persistence.domain.dto.account.admin.AdminResetPasswordRqstDto;
-import com.travelbuddy.persistence.domain.dto.account.admin.AdminUpdateRqstDto;
-import com.travelbuddy.persistence.domain.dto.account.admin.CreateAdminRqstDto;
+import com.travelbuddy.persistence.domain.dto.account.admin.*;
 import com.travelbuddy.persistence.domain.entity.AdminEntity;
 import com.travelbuddy.persistence.domain.entity.FileEntity;
 import com.travelbuddy.persistence.domain.entity.GroupEntity;
@@ -37,6 +34,7 @@ import java.util.Set;
 public class AdminServiceImpl implements AdminService {
     private final AdminRepository adminRepository;
     private final PageMapper pageMapper;
+    private final AdminMapper adminMapper;
     private final GroupRepository groupRepository;
     private final PermissionRepository permissionRepository;
     private final PasswordEncoder passwordEncoder;
@@ -50,15 +48,16 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public PageDto<AdminEntity> getAdmins(int page, String search) {
+    public PageDto<AdminRspdDto> getAdmins(int page, String search) {
         Pageable pageable = PageRequest.of(page - 1, PaginationLimitConstants.ADMIN_ACCOUNT_LIMITS, Sort.by("id"));
         Page<AdminEntity> adminEntities = adminRepository.findAllByEmailContaining(search, pageable);
-        return pageMapper.toPageDto(adminEntities);
+        return pageMapper.toPageDto(adminEntities.map(adminMapper::toAdminRspdDto));
     }
 
-    public AdminEntity getAdminById(int id) {
-        return adminRepository.findById(id)
+    public AdminRspdDto getAdminById(int id) {
+        AdminEntity adminEntity = adminRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Admin with id not found"));
+        return adminMapper.toAdminRspdDto(adminEntity);
     }
 
     @Override
@@ -130,13 +129,8 @@ public class AdminServiceImpl implements AdminService {
     public void updateAdmin(AdminUpdateRqstDto adminUpdateRqstDto) {
         AdminEntity adminEntity = adminRepository.findById(adminUpdateRqstDto.getId())
                 .orElseThrow(() -> new NotFoundException("Admin with id not found"));
-        adminEntity.setFullName(adminUpdateRqstDto.getFullName());
-        adminEntity.setGender(adminUpdateRqstDto.getGender());
         adminEntity.setAddress(adminUpdateRqstDto.getAddress());
         adminEntity.setPhoneNumber(adminUpdateRqstDto.getPhoneNumber());
-        adminEntity.setEnabled(adminUpdateRqstDto.isEnabled());
-        if (!adminUpdateRqstDto.getPassword().isBlank())
-            adminEntity.setPassword(passwordEncoder.encode(adminUpdateRqstDto.getPassword()));
         if (!adminUpdateRqstDto.getAvatarId().isBlank())
             adminEntity.setAvatar(FileEntity.builder().id(adminUpdateRqstDto.getAvatarId()).url(adminUpdateRqstDto.getAvatarUrl()).build());
         adminEntity.setUpdatedAt(LocalDateTime.now());

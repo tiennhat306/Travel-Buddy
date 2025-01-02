@@ -39,14 +39,14 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_ADMINS')") // TODO: Make this to two
     public ResponseEntity<Object> getAccounts(@RequestParam(name = "page", defaultValue = "1") int page,
                                               @RequestParam(name = "search", required = false) String search) {
-        PageDto<AdminEntity> adminEntities = adminService.getAdmins(page, search);
+        PageDto<AdminRspdDto> adminEntities = adminService.getAdmins(page, search);
         return ResponseEntity.ok(adminEntities);
     }
 
     @GetMapping("/admin-accounts/{id}")
     @PreAuthorize("hasAuthority('MANAGE_ADMINS')")
     public ResponseEntity<Object> getAdmin(@PathVariable int id) {
-        AdminEntity adminEntity = adminService.getAdminById(id);
+        AdminRspdDto adminEntity = adminService.getAdminById(id);
         return ResponseEntity.ok(adminEntity);
     }
 
