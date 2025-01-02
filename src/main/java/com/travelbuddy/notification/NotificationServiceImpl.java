@@ -36,7 +36,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public PageDto<Object> getNotifications(int page) {
         int userId = requestUtils.getUserIdCurrentRequest();
-        Pageable pageable = PageRequest.of(page - 1, PaginationLimitConstants.NOTIFICATION_LIMIT, Sort.by("lastUpdated"));
+        Pageable pageable = PageRequest.of(page - 1, PaginationLimitConstants.NOTIFICATION_LIMIT, Sort.by(Sort.Order.desc("lastUpdated")));
         Page<NotificationEntity> notifications = notificationRepository.findAllByUserId(userId, pageable);
 
         Page<Object> jsonPage = new PageImpl<>(
@@ -170,8 +170,8 @@ public class NotificationServiceImpl implements NotificationService {
                 jsonObject.put("userImageUrl", user.getAvatar() == null ? null : user.getAvatar());
                 jsonObject.put("planId", entityId);
                 jsonObject.put("planName", travelPlan.getName());
-                jsonObject.put("content", content.toString());
-                String fullMessage = jsonObject.getString("userName") + " đã thay đổi kế hoạch của " + jsonObject.getString("planName") + " : " + jsonObject.getString("content");
+                jsonObject.put("content", content);
+                String fullMessage = jsonObject.getString("userName") + " đã thay đổi kế hoạch của " + jsonObject.getString("planName");
                 jsonObject.put("fullMessage", fullMessage);
                 jsonObject.put("createdAt", notification.getLastUpdated().toString());
             }
