@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/recommendations")
 @RequiredArgsConstructor
@@ -17,8 +19,8 @@ public class RecommendationController {
     }
 
     @GetMapping("/discover")
-    public ResponseEntity<Object> getDiscoverRecommendations(@RequestBody DiscoverSiteTypeRqstDto discoverSiteTypeRqstDto) {
-        return ResponseEntity.ok(recommendationService.getDiscoverRecommendations(discoverSiteTypeRqstDto));
+    public ResponseEntity<Object> getDiscoverRecommendations(@RequestParam List<Integer> typeIds) {
+        return ResponseEntity.ok(recommendationService.getDiscoverRecommendations(typeIds));
     }
 
     @GetMapping("/for-plan/{planId}")

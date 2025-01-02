@@ -63,9 +63,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     @Override
-    public Object getDiscoverRecommendations(DiscoverSiteTypeRqstDto discoverSiteTypeRqstDto) {
-        List<Integer> typeIds = discoverSiteTypeRqstDto.getTypeIds();
-
+    public Object getDiscoverRecommendations(List<Integer> typeIds) {
         List<SiteBasicInfoRspnDto> sitesByType = siteService.getSiteBasicRepresentationByType(typeIds);
 
         return new PageDto<>(sitesByType, null);
