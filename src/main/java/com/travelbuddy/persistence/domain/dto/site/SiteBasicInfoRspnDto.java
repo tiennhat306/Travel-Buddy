@@ -67,6 +67,19 @@ public class SiteBasicInfoRspnDto {
         mapUser(userEntity);
     }
 
+    public List<MediaRspnDto> getSiteMedias(SiteEntity siteEntity) {
+        List<SiteMediaEntity> siteMediaEntities = siteEntity.getSiteMedias();
+
+        return siteMediaEntities.stream()
+                .map(siteMediaEntity -> MediaRspnDto.builder()
+                        .id(siteMediaEntity.getId())
+                        .url(siteMediaEntity.getMedia().getUrl())
+                        .mediaType(siteMediaEntity.getMediaType())
+                        .createdAt(String.valueOf(siteMediaEntity.getMedia().getCreatedAt()))
+                        .build())
+                .toList();
+    }
+
     public SiteBasicInfoRspnDto(SiteVersionEntity siteVersionEntity) {
         this.siteId = siteVersionEntity.getSiteId();
         this.siteVersionId = siteVersionEntity.getId();
@@ -97,6 +110,8 @@ public class SiteBasicInfoRspnDto {
                 .findFirst()
                 .map(SiteReactionEntity::getReactionType)
                 .orElse(null);
+
+        this.medias = getSiteMedias(siteVersionEntity.getSiteEntity());
 
         // Mapping the ratings
         this.totalRating = siteVersionEntity.getSiteEntity().getSiteReviewEntities().size();
