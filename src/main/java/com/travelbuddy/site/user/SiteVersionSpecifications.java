@@ -1,6 +1,7 @@
 package com.travelbuddy.site.user;
 
 import com.travelbuddy.common.constants.ApprovalStatusEnum;
+import com.travelbuddy.common.constants.ReactionTypeEnum;
 import com.travelbuddy.persistence.domain.entity.SiteVersionEntity;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.JoinType;
@@ -12,7 +13,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.sql.Date;
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -32,23 +32,22 @@ public class SiteVersionSpecifications {
             var reviewJoin = siteEntityJoin.join("siteReviewEntities", JoinType.LEFT);
             var reactionJoin = reviewJoin.join("reviewReactions", JoinType.LEFT);
 
-            // Điều kiện chỉ lấy các siteVersion đã được duyệt
-            Predicate approvedPredicate = criteriaBuilder.equal(
-                    root.get("siteApprovalEntity").get("status"), ApprovalStatusEnum.APPROVED
-            );
-
-            // Điều kiện lấy phiên bản mới nhất (latest) dựa trên `createdAt`
-            assert query != null;
-            Subquery<LocalDateTime> latestApprovedSubquery = query.subquery(LocalDateTime.class);
+            // Subquery để lấy id phiên bản site được phê duyệt mới nhất
+            Subquery<Integer> latestApprovedSubquery = query.subquery(Integer.class);
             var subRoot = latestApprovedSubquery.from(SiteVersionEntity.class);
-            latestApprovedSubquery.select(
-                    criteriaBuilder.function("MAX", LocalDateTime.class, subRoot.get("createdAt"))
-            ).where(
-                    criteriaBuilder.equal(subRoot.get("siteEntity").get("id"), root.get("siteEntity").get("id")),
-                    criteriaBuilder.equal(subRoot.get("siteApprovalEntity").get("status"), ApprovalStatusEnum.APPROVED)
-            );
+            Expression<Integer> siteVersionIdPath = subRoot.get("id");
 
-            Predicate latestVersionPredicate = criteriaBuilder.equal(root.get("createdAt"), latestApprovedSubquery);
+            latestApprovedSubquery.select(criteriaBuilder.greatest(siteVersionIdPath))
+                    .where(
+                            criteriaBuilder.equal(subRoot.get("siteEntity").get("id"), root.get("siteEntity").get("id")),
+                            criteriaBuilder.equal(subRoot.get("siteApprovalEntity").get("status"), ApprovalStatusEnum.APPROVED)
+                    );
+
+            // Predicate kiểm tra id của root với subquery
+            Predicate latestApprovedPredicate = criteriaBuilder.equal(root.get("id"), latestApprovedSubquery);
+
+            // siteEntity enabled = true
+            Predicate siteEnabledPredicate = criteriaBuilder.equal(siteEntityJoin.get("enabled"), true);
 
             // Điều kiện tìm kiếm theo `siteName` hoặc `resolvedAddress`
             Predicate searchPredicate = criteriaBuilder.or(
@@ -70,10 +69,10 @@ public class SiteVersionSpecifications {
 
             // Tính toán số lượng "like" và "dislike"
             Expression<Long> likeCount = criteriaBuilder.count(
-                    criteriaBuilder.equal(reactionJoin.get("reactionType"), "LIKE")
+                    criteriaBuilder.equal(reactionJoin.get("reactionType"), ReactionTypeEnum.LIKE.name())
             );
             Expression<Long> dislikeCount = criteriaBuilder.count(
-                    criteriaBuilder.equal(reactionJoin.get("reactionType"), "DISLIKE")
+                    criteriaBuilder.equal(reactionJoin.get("reactionType"), ReactionTypeEnum.DISLIKE.name())
             );
 
             // Tính toán khoảng cách ngày tạo đến hiện tại
@@ -100,9 +99,9 @@ public class SiteVersionSpecifications {
 
             // Thêm điều kiện tìm kiếm và sắp xếp
             if (StringUtils.isNotBlank(search)) {
-                query.where(criteriaBuilder.and(approvedPredicate, latestVersionPredicate, searchPredicate));
+                query.where(criteriaBuilder.and(latestApprovedPredicate, siteEnabledPredicate, searchPredicate));
             } else {
-                query.where(criteriaBuilder.and(approvedPredicate, latestVersionPredicate));
+                query.where(criteriaBuilder.and(latestApprovedPredicate, siteEnabledPredicate));
             }
 
             query.orderBy(criteriaBuilder.desc(customScore));
