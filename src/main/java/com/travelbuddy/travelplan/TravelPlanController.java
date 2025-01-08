@@ -32,7 +32,6 @@ public class TravelPlanController {
     @PostMapping
     public ResponseEntity<Void> createTravelPlan(@RequestBody @Valid TravelPlanCreateRqstDto travelPlanCreateRqstDto) {
         int travelPlanId =  travelPlanService.createTravelPlan(travelPlanCreateRqstDto);
-        systemLogService.logInfo("Travel plan " + travelPlanId + " created");
         return ResponseEntity.created(URI.create("/api/travel-plans/" + travelPlanId)).build();
     }
 
@@ -67,56 +66,48 @@ public class TravelPlanController {
 
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("coverUrl", uploadedFile.getUrl());
-        systemLogService.logInfo("Travel plan " + travelPlanId + " changed");
         return ResponseEntity.ok(objectNode);
     }
 
     @PutMapping("/{travelPlanId}/add-member")
     public ResponseEntity<Void> addMemberToTravelPlan(@PathVariable int travelPlanId, @RequestBody @Valid TravelPlanMemberRqstDto travelPlanMemberRqstDto) {
         travelPlanService.addMemberToTravelPlan(travelPlanId, travelPlanMemberRqstDto.getUserId());
-        systemLogService.logInfo("User " + travelPlanMemberRqstDto.getUserId() + " added to travel plan " + travelPlanId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{travelPlanId}/remove-member")
     public ResponseEntity<Void> removeMemberFromTravelPlan(@PathVariable int travelPlanId, @RequestBody @Valid TravelPlanMemberRqstDto travelPlanMemberRqstDto) {
         travelPlanService.removeMemberFromTravelPlan(travelPlanId, travelPlanMemberRqstDto.getUserId());
-        systemLogService.logInfo("User " + travelPlanMemberRqstDto.getUserId() + " removed from travel plan " + travelPlanId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{travelPlanId}/change-role")
     public ResponseEntity<Void> changeMemberRole(@PathVariable int travelPlanId, @RequestBody ChgMemberRoleRqstDto chgMemberRoleRqstDto) {
         travelPlanService.changeMemberRole(travelPlanId, chgMemberRoleRqstDto);
-        systemLogService.logInfo("User " + chgMemberRoleRqstDto.getUserId() + " role changed in travel plan " + travelPlanId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{travelPlanId}/add-site")
     public ResponseEntity<Void> addSiteToTravelPlan(@PathVariable int travelPlanId, @RequestBody TravelPlanSiteCreateRqstDto travelPlanSiteCreateRqstDto) {
         travelPlanService.addSiteToTravelPlan(travelPlanId, travelPlanSiteCreateRqstDto);
-        systemLogService.logInfo("Site " + travelPlanSiteCreateRqstDto.getSiteId() + " added to travel plan " + travelPlanId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{travelPlanId}/remove-site")
     public ResponseEntity<Void> removeSiteFromTravelPlan(@PathVariable int travelPlanId, @RequestBody TravelPlanSiteDeleteRqstDto travelPlanSiteDeleteRqstDto) {
         travelPlanService.removeSiteFromTravelPlan(travelPlanId, travelPlanSiteDeleteRqstDto.getSiteId());
-        systemLogService.logInfo("Site " + travelPlanSiteDeleteRqstDto.getSiteId() + " removed from travel plan " + travelPlanId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{travelPlanId}/update-site")
     public ResponseEntity<Void> updateSiteInTravelPlan(@PathVariable int travelPlanId, @RequestBody TravelPlanSiteUpdateRqstDto travelPlanSiteUpdateRqstDto) {
         travelPlanService.updateSiteInTravelPlan(travelPlanId, travelPlanSiteUpdateRqstDto);
-        systemLogService.logInfo("Site " + travelPlanSiteUpdateRqstDto.getSiteId() + " updated in travel plan " + travelPlanId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{travelPlanId}")
     public ResponseEntity<Void> deleteTravelPlan(@PathVariable int travelPlanId) {
         travelPlanService.deleteTravelPlan(travelPlanId);
-        systemLogService.logInfo("Travel plan " + travelPlanId + " deleted");
         return ResponseEntity.ok().build();
     }
 

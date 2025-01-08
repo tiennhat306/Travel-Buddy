@@ -20,7 +20,7 @@ public class AdminSiteController {
     @GetMapping
     public ResponseEntity<Object> getSiteVersion(@RequestParam(name = "version") int siteVersionId) {
         // 1. Get the site representation
-        SiteRepresentationDto siteRepresentationDto = siteVersionService.getSiteVersionView(siteVersionId);
+        SiteRepresentationDto siteRepresentationDto = siteVersionService.getSiteVersionView(siteVersionId, -1);
 
         return ResponseEntity.ok(siteRepresentationDto);
     }
@@ -28,16 +28,7 @@ public class AdminSiteController {
     @PreAuthorize("hasAuthority('MANAGE_SITES')")
     @GetMapping("/{siteId}")
     public ResponseEntity<Object> getValidSiteRepresention(@PathVariable int siteId) {
-        /* This API returns the representation of siteID, publicly */
-        var latestApprovedVersionId = siteApprovalRepository.findLatestApprovedSiteVersionIdBySiteId(siteId);
-        if (latestApprovedVersionId.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Success block
-        Integer siteVersionId = latestApprovedVersionId.get();
-        SiteRepresentationDto representationDto = siteVersionService.getSiteVersionView(siteVersionId);
-
+        SiteRepresentationDto representationDto = siteVersionService.adminGetValidSiteRepresention(siteId);
         return ResponseEntity.ok(representationDto);
     }
 }

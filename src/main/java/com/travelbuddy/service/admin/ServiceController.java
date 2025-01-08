@@ -22,19 +22,13 @@ public class ServiceController {
     @PostMapping
     public ResponseEntity<Object> createSiteService(@RequestBody @Valid ServiceCreateRqstDto serviceCreateRqstDto) {
         serviceService.createSiteService(serviceCreateRqstDto);
-        systemLogService.logInfo("New site service created" + serviceCreateRqstDto.getServiceName());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping
     public ResponseEntity<Object> getSiteServices(@RequestParam(name = "q", required = false, defaultValue = "") String serviceSearch,
                                                   @RequestParam(name = "page", required = false, defaultValue = "1") int page) {
-        if (page < 1) {
-            page = 1;
-        }
-        PageDto<ServiceEntity> siteServicesPage = serviceSearch.trim().isEmpty()
-                ? serviceService.getAllSiteServices(page)
-                : serviceService.searchSiteServices(serviceSearch, page);
+        PageDto<ServiceEntity> siteServicesPage = serviceService.handleGetSiteServices(serviceSearch, page);
         return ResponseEntity.ok(siteServicesPage);
     }
 
@@ -42,7 +36,6 @@ public class ServiceController {
     @PutMapping("/{serviceId}")
     public ResponseEntity<Object> updateSiteService(@PathVariable Integer serviceId, @RequestBody @Valid ServiceCreateRqstDto serviceCreateRqstDto) {
         serviceService.updateSiteService(serviceId, serviceCreateRqstDto);
-        systemLogService.logInfo("Site service updated" + serviceCreateRqstDto.getServiceName());
         return ResponseEntity.noContent().build();
     }
 }

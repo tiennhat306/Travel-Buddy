@@ -47,20 +47,12 @@ public class LogController {
     @GetMapping("/download-logs")
     @PreAuthorize("hasAuthority('ACCESS_LOGS')")
     public ResponseEntity<InputStreamResource> downloadSystemLogs() throws IOException {
-        List<LogEntity> logs = systemLogService.getAllLogs();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        for (LogEntity log : logs) {
-            outputStream.write(log.toString().getBytes(StandardCharsets.UTF_8));
-        }
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=system_logs.txt");
 
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentType(MediaType.TEXT_PLAIN)
-                .body(new InputStreamResource(inputStream));
+                .body(systemLogService.handleDownloadLogs());
     }
 }

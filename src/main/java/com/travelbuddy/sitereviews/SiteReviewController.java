@@ -36,22 +36,10 @@ import java.util.Optional;
 @RequestMapping("/api/site-reviews")
 public class SiteReviewController {
     private final SiteReviewService siteReviewService;
-    private final SiteReviewRepository siteReviewRepository;
-    private final StorageService storageService;
-    private final RequestUtils requestUtils;
-    private final ObjectMapper objectMapper;
-    private final BehaviorLogRepository behaviorLogRepository;
 
     @PostMapping
     public ResponseEntity<Void> postSiteReview(@RequestBody @Valid SiteReviewCreateRqstDto siteReviewCreateRqstDto) {
         siteReviewService.createSiteReview(siteReviewCreateRqstDto);
-        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
-                .userId(requestUtils.getUserIdCurrentRequest())
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .siteId(siteReviewCreateRqstDto.getSiteId())
-                .behavior("POST_REVIEW")
-                .build();
-        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.created(URI.create("/api/site-reviews/" + siteReviewCreateRqstDto.getSiteId())).build();
     }
 
@@ -66,7 +54,6 @@ public class SiteReviewController {
     public ResponseEntity<Void> updateSiteReview(@PathVariable int reviewId,
                                                  @RequestBody @Valid  SiteReviewUpdateRqstDto siteReviewUpdateRqstDto) {
 
-
         siteReviewService.updateSiteReview(reviewId, siteReviewUpdateRqstDto);
         return ResponseEntity.ok().build();
     }
@@ -80,26 +67,12 @@ public class SiteReviewController {
     @PostMapping("/{reviewId}/like")
     public ResponseEntity<Void> likeSiteReview(@PathVariable int reviewId) {
         siteReviewService.likeSiteReview(reviewId);
-        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
-                .userId(requestUtils.getUserIdCurrentRequest())
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .siteId(siteReviewRepository.getSiteIdById(reviewId))
-                .behavior("LIKE_REVIEW")
-                .build();
-        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{reviewId}/dislike")
     public ResponseEntity<Void> dislikeSiteReview(@PathVariable int reviewId) {
         siteReviewService.dislikeSiteReview(reviewId);
-        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
-                .userId(requestUtils.getUserIdCurrentRequest())
-                .timestamp(new Timestamp(System.currentTimeMillis()))
-                .siteId(siteReviewRepository.getSiteIdById(reviewId))
-                .behavior("DISLIKE_REVIEW")
-                .build();
-        behaviorLogRepository.save(behaviorLog);
         return ResponseEntity.ok().build();
     }
 

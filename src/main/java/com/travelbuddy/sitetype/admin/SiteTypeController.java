@@ -28,68 +28,39 @@ import java.util.Map;
 @RequestMapping("/api/admin/site-types")
 public class SiteTypeController {
     private final SiteTypeService siteTypeService;
-    private final SiteTypeRepository siteTypeRepository;
-    private final AspectsByTypeService aspectsByTypeService;
-    private final AspectsByTypeRepository aspectsByTypeRepository;
-    private final ServiceGroupService serviceGroupService;
-    private final SystemLogService systemLogService;
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping
     public ResponseEntity<Object> postSiteType(@RequestBody @Valid SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
-        if (siteTypeRepository.existsByTypeNameIgnoreCase(siteTypeCreateRqstDto.getSiteTypeName()))
-            throw new DataAlreadyExistsException("Site type already exists");
-
-        Integer siteTypeId = siteTypeService.createSiteType(siteTypeCreateRqstDto);
-        for (Integer serviceGroupId : siteTypeCreateRqstDto.getServiceGroups()) {
-            serviceGroupService.associateType(serviceGroupId, siteTypeId);
-        }
-        List<AspectsByTypeEntity> aspectsByType = new ArrayList<AspectsByTypeEntity>();
-        for (String aspectName : siteTypeCreateRqstDto.getAspects()) {
-            aspectsByType.add(AspectsByTypeEntity.builder().typeId(siteTypeId).aspectName(aspectName).build());
-        }
-        aspectsByTypeRepository.saveAll(aspectsByType);
-        systemLogService.logInfo("Site type with id " + siteTypeId + " created");
+        Integer siteTypeId = siteTypeService.handlePostSiteType(siteTypeCreateRqstDto);
         return ResponseEntity.created(URI.create("/admin/api/siteTypes/" + siteTypeId)).build();
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PutMapping("/{siteTypeId}")
     public ResponseEntity<Object> updateSiteType(@PathVariable int siteTypeId, @RequestBody @Valid SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
-        siteTypeService.updateSiteType(siteTypeId, siteTypeCreateRqstDto);
-        systemLogService.logInfo("Site type with id " + siteTypeId + " updated");
+        siteTypeService.handleUpdateSiteType(siteTypeId, siteTypeCreateRqstDto);
         return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PostMapping("/aspects")
     public ResponseEntity<Object> postAspect(@RequestBody @Valid AspectsByTypeCreateRqstDto aspectsByTypeCreateRqstDto) {
-        aspectsByTypeService.addNewAspects(aspectsByTypeCreateRqstDto.getTypeId(), aspectsByTypeCreateRqstDto.getAspectNames());
-        systemLogService.logInfo("New aspects added to site type with id " + aspectsByTypeCreateRqstDto.getTypeId());
+        siteTypeService.handlePostAspect(aspectsByTypeCreateRqstDto.getTypeId(), aspectsByTypeCreateRqstDto.getAspectNames());
         return ResponseEntity.created(URI.create("/admin/api/siteTypes/aspects")).build();
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @PutMapping("/aspects")
     public ResponseEntity<Object> updateAspect(@RequestBody @Valid AspectsByTypeEditRqstDto aspectsByTypeEditRqstDto) {
-        AspectsByTypeEntity aspect = aspectsByTypeRepository.findById(aspectsByTypeEditRqstDto.getId())
-                .orElseThrow(() -> new NotFoundException("Aspect not found"));
-        List<AspectsByTypeEntity> aspectsByType = aspectsByTypeRepository.findAllByTypeId(aspect.getTypeId())
-                .orElseThrow(() -> new NotFoundException("Aspect not found"));
-        if (aspectsByType.stream().anyMatch(a -> a.getAspectName().equalsIgnoreCase(aspectsByTypeEditRqstDto.getNewAspectName())))
-            throw new DataAlreadyExistsException("Aspect already exists");
-        aspectsByTypeService.updateAspectName(aspectsByTypeEditRqstDto.getId(), aspectsByTypeEditRqstDto.getNewAspectName());
-        systemLogService.logInfo("Aspect with id " + aspectsByTypeEditRqstDto.getId() + " updated");
+        siteTypeService.handleUpdateAspect(aspectsByTypeEditRqstDto);
         return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SITE_TYPES')")
     @DeleteMapping("/aspects")
     public ResponseEntity<Object> deleteAspect(@RequestBody List<Integer> aspectIds) {
-        List<AspectsByTypeEntity> aspectsByType = aspectsByTypeService.deleteAspectsByIds(aspectIds);
-        Map<String, Object> response = new HashMap<>();
-        response.put("failed", aspectsByType);
-        systemLogService.logInfo("Aspects with ids " + aspectIds + " deleted");
+        Map<String, Object> response = siteTypeService.handleDeleteAspect(aspectIds);
         return ResponseEntity.ok(response);
     }
 }

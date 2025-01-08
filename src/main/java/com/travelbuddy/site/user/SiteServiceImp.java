@@ -21,6 +21,7 @@ import com.travelbuddy.phonenumber.user.PhoneNumberService;
 import com.travelbuddy.service.admin.ServiceService;
 import com.travelbuddy.siteapproval.admin.SiteApprovalService;
 import com.travelbuddy.siteversion.user.SiteVersionService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import jakarta.transaction.Transactional;
@@ -57,6 +58,7 @@ public class SiteServiceImp implements SiteService {
     private final SiteVersionSpecifications siteVersionSpecifications;
     private final PageMapper pageMapper;
     private final FeeService feeService;
+    private final SystemLogService systemLogService;
 
     private final NotificationProducer notificationProducer;
 
@@ -100,12 +102,16 @@ public class SiteServiceImp implements SiteService {
 
         // 8. Save fees
         feeService.addFee(siteCreateRqstDto.getFees(), siteVersionID);
+        systemLogService.logInfo("Site with id " + siteId + " created");
         return siteId;
     }
 
     @Override
     @Transactional
-    public Integer updateSite(SiteUpdateRqstDto siteUpdateRqstDto) {
+    public Integer updateSite(SiteUpdateRqstDto siteUpdateRqstDto, Integer ownerId) {
+        if (!ownerId.equals(siteUpdateRqstDto.getSiteId())) {
+            throw new ForbiddenException("You are not allowed to update this site");
+        }
         SiteEntity siteEntity = siteRepository.findById(siteUpdateRqstDto.getSiteId())
                 .orElseThrow(() -> new NotFoundException("Site not found"));
 
@@ -162,6 +168,7 @@ public class SiteServiceImp implements SiteService {
 
         // 7. Save fees
         feeService.addFee(siteUpdateRqstDto.getFees(), siteVersionId);
+        systemLogService.logInfo("Site with id " + siteUpdateRqstDto.getSiteId() + " updated");
 
         return siteVersionId;
     }

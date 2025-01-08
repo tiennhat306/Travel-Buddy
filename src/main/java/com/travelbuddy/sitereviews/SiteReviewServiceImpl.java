@@ -14,10 +14,8 @@ import com.travelbuddy.notification.NotificationProducer;
 import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.*;
-import com.travelbuddy.persistence.domain.entity.FileEntity;
-import com.travelbuddy.persistence.domain.entity.ReviewMediaEntity;
-import com.travelbuddy.persistence.domain.entity.ReviewReactionEntity;
-import com.travelbuddy.persistence.domain.entity.SiteReviewEntity;
+import com.travelbuddy.persistence.domain.entity.*;
+import com.travelbuddy.persistence.repository.BehaviorLogRepository;
 import com.travelbuddy.persistence.repository.ReviewMediaRepository;
 import com.travelbuddy.persistence.repository.ReviewReactionRepository;
 import com.travelbuddy.persistence.repository.SiteReviewRepository;
@@ -31,9 +29,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +54,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     private final RequestUtils requestUtils;
     private final SiteService siteService;
     private final NotificationProducer notificationProducer;
+    private final BehaviorLogRepository behaviorLogRepository;
 
     @Override
     public void createSiteReview(SiteReviewCreateRqstDto siteReviewCreateRqstDto) {
@@ -95,6 +96,13 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         jsonObject.put("entityType", NotiEntityTypeEnum.SITE.getType());
         jsonObject.put("entityId", siteReviewEntity.getSiteId());
         notificationProducer.sendNotification("notifications", jsonObject.toString());
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .userId(requestUtils.getUserIdCurrentRequest())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .siteId(siteReviewCreateRqstDto.getSiteId())
+                .behavior("POST_REVIEW")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
     }
 
     @Override
@@ -105,7 +113,6 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         Page<SiteReviewEntity> siteReviews = siteReviewRepository.findAll(specification, pageable);
 
         int userId = requestUtils.getUserIdCurrentRequest();
-
         return pageMapper.toPageDto(siteReviews.map(siteReviewEntity -> siteReviewMapper.siteReviewEntityToSiteReviewRspnDto(siteReviewEntity, userId)));
     }
 
@@ -212,6 +219,13 @@ public class SiteReviewServiceImpl implements SiteReviewService {
         jsonObject.put("entityType", NotiEntityTypeEnum.SITE_REVIEW.getType());
         jsonObject.put("entityId", reviewId);
         notificationProducer.sendNotification("notifications", jsonObject.toString());
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .userId(requestUtils.getUserIdCurrentRequest())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .siteId(siteReviewRepository.getSiteIdById(reviewId))
+                .behavior("LIKE_REVIEW")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
     }
 
     @Override
@@ -239,6 +253,13 @@ public class SiteReviewServiceImpl implements SiteReviewService {
                     .build();
         }
         reviewReactionRepository.save(reviewReactionEntity);
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .userId(requestUtils.getUserIdCurrentRequest())
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .siteId(siteReviewRepository.getSiteIdById(reviewId))
+                .behavior("DISLIKE_REVIEW")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
     }
 
     @Override

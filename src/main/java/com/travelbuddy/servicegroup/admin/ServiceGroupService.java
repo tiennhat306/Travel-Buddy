@@ -8,7 +8,6 @@ import java.util.List;
 public interface ServiceGroupService {
     Integer createServiceGroup(ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
     GroupedSiteServicesRspnDto getServiceGroup(Integer id);
-    List<GroupedSiteServicesRspnDto> getServiceGroups();
     void updateServiceGroup(Integer serviceGroupId, ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
 
     void associateService(Integer serviceGroupId, Integer serviceId);
@@ -18,4 +17,9 @@ public interface ServiceGroupService {
     void associateType(Integer serviceGroupId, Integer typeId);
     void detachType(Integer serviceGroupId, Integer typeId);
     void detachType(Integer id);
+
+    void handleAssociateService(Integer serviceGroupId, Integer serviceId, Boolean remove);
+    void handleAssociateType(Integer serviceGroupId, Integer typeId, Boolean remove);
+    void handleUpdateServiceGroup(Integer serviceGroupId, ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
+    Integer handleCreateServiceGroup(ServiceGroupCreateRqstDto serviceGroupCreateRqstDto);
 }

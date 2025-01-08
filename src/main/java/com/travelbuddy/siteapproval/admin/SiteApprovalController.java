@@ -1,6 +1,7 @@
 package com.travelbuddy.siteapproval.admin;
 
 import com.travelbuddy.auth.service.AdminService;
+import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.persistence.domain.dto.site.SiteRepresentationDto;
 import com.travelbuddy.persistence.domain.dto.siteapproval.UpdateSiteApprovalRqstDto;
 import com.travelbuddy.persistence.domain.entity.SiteApprovalEntity;
@@ -19,18 +20,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin/site-approval")
 public class SiteApprovalController {
     private final SiteApprovalService siteApprovalService;
-    private final AdminService adminService;
-    private final SiteApprovalRepository siteApprovalRepository;
-    private final SiteVersionService siteVersionService;
-    private final SystemLogService systemLogService;
+    private final RequestUtils requestUtils;
 
     @PreAuthorize("hasAuthority('MANAGE_SITES')")
     @PutMapping
     public ResponseEntity<Object> approveSite(@RequestBody @Valid UpdateSiteApprovalRqstDto siteApprovalRqstDto) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Integer userId = adminService.getAdminIdByEmailOrUsername(username);
-        siteApprovalService.updateSiteApproval(siteApprovalRqstDto, userId);
-        systemLogService.logInfo("Site " + siteApprovalRqstDto.getId() + " approved by " + username);
+        siteApprovalService.handleApproveSite(siteApprovalRqstDto, requestUtils.getAdminIdCurrentRequest());
         return ResponseEntity.ok().build();
     }
 
@@ -44,11 +39,7 @@ public class SiteApprovalController {
     @PreAuthorize("hasAuthority('MANAGE_SITES')")
     @GetMapping("/{siteApprovalId}")
     public ResponseEntity<Object> getSiteApproval(@PathVariable Integer siteApprovalId) {
-        SiteApprovalEntity siteApproval = siteApprovalRepository.findById(siteApprovalId).orElse(null);
-        if (siteApproval == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Site approval not found");
-        }
-        SiteRepresentationDto siteRepresentationDto = siteVersionService.getSiteVersionView(siteApproval.getSiteVersionId());
+        SiteRepresentationDto siteRepresentationDto = siteApprovalService.handleGetSiteApproval(siteApprovalId);
         return ResponseEntity.ok(siteRepresentationDto);
     }
 }

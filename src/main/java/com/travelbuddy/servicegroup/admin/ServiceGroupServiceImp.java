@@ -11,6 +11,7 @@ import com.travelbuddy.persistence.domain.entity.ServicesByGroupEntity;
 import com.travelbuddy.persistence.repository.*;
 
 import com.travelbuddy.sitetype.admin.SiteTypeService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,8 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
     private final ServiceGroupRepository serviceGroupRepository;
     private final ServicesByGroupRepository servicesByGroupRepository;
     private final ServiceGroupByTypeRepository serviceGroupByTypeRepository;
-    private final SiteTypeService siteTypeService;
     private final SiteTypeRepository siteTypeRepository;
+    private final SystemLogService systemLogService;
 
 
     @Override
@@ -62,11 +63,6 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
         rspnd.setServiceGroup(serviceGroupEntity);
         rspnd.setServices(servicesInGroupList);
         return rspnd;
-    }
-
-    @Override
-    public List<GroupedSiteServicesRspnDto> getServiceGroups() {
-        return siteTypeService.getAssociatedServiceGroups();
     }
 
     @Override
@@ -145,5 +141,74 @@ public class ServiceGroupServiceImp implements ServiceGroupService {
         // Check the existence of the service group with the given id
         ServiceGroupByTypeEntity serviceGroupByTypeEntity = serviceGroupByTypeRepository.findByTypeIdAndServiceGroupId(typeId, serviceGroupId).orElseThrow(() -> new NotFoundException("Service group with id " + serviceGroupId + " not found"));
         serviceGroupByTypeRepository.delete(serviceGroupByTypeEntity);
+    }
+
+    @Override
+    public void handleAssociateService(Integer serviceGroupId, Integer serviceId, Boolean remove) {
+        /*
+         * The id is required, if removed is not set, automatically set to false
+         * If the removed is set to true, serviceId is not required
+         * If the removed is set to false, serviceId is required
+         * */
+        if (serviceGroupId == null) {
+            throw new IllegalArgumentException("id is required");
+        }
+        // 1. Check if remove is set
+        if (remove == null || !remove) {
+            remove = false;
+            if (serviceId == null) {
+                throw new IllegalArgumentException("serviceId is required when remove is set to false");
+            }
+            associateService(serviceGroupId, serviceId);
+        } else {
+            remove = true;
+            if (serviceId != null) {
+                detachService(serviceGroupId, serviceId);
+            } else {
+                detachService(serviceGroupId);
+            }
+        }
+        systemLogService.logInfo("Service group " + serviceGroupId + " updated");
+    }
+
+    @Override
+    public void handleAssociateType(Integer serviceGroupId, Integer typeId, Boolean remove) {
+        /*
+         * The id is required, if removed is not set, automatically set to false
+         * If the removed is set to true, typeId is not required
+         * If the removed is set to false, typeId is required
+         * */
+        if (serviceGroupId == null) {
+            throw new IllegalArgumentException("id is required");
+        }
+        // 1. Check if remove is set
+        if (remove == null || !remove) {
+            remove = false;
+            if (typeId == null) {
+                throw new IllegalArgumentException("typeId is required when remove is set to false");
+            }
+            associateType(serviceGroupId, typeId);
+        } else {
+            remove = true;
+            if (typeId != null) {
+                detachType(serviceGroupId, typeId);
+            } else {
+                detachType(serviceGroupId);
+            }
+        }
+        systemLogService.logInfo("Service group " + serviceGroupId + " updated");
+    }
+
+    @Override
+    public void handleUpdateServiceGroup(Integer serviceGroupId, ServiceGroupCreateRqstDto serviceGroupCreateRqstDto) {
+        updateServiceGroup(serviceGroupId, serviceGroupCreateRqstDto);
+        systemLogService.logInfo("Service group " + serviceGroupId + " updated");
+    }
+
+    @Override
+    public Integer handleCreateServiceGroup(ServiceGroupCreateRqstDto serviceGroupCreateRqstDto) {
+        Integer id = createServiceGroup(serviceGroupCreateRqstDto);
+        systemLogService.logInfo("Service group " + id + " created");
+        return id;
     }
 }

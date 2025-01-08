@@ -35,39 +35,32 @@ public class UserController {
 
     @GetMapping("/detail")
     public ResponseEntity<UserDetailRspnDto> getUserDetail() {
-        int userId = requestUtils.getUserIdCurrentRequest();
-
-        return ResponseEntity.ok(userService.getUserDetail(userId));
+        return ResponseEntity.ok(userService.getUserDetail(requestUtils.getUserIdCurrentRequest()));
     }
 
     @PutMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody @Valid ChgPasswordRqstDto chgPasswordRqstDto) {
-        int userId = requestUtils.getUserIdCurrentRequest();
-        userService.changePassword(userId, chgPasswordRqstDto);
-        systemLogService.logInfo(userId + " changed password");
+        userService.changePassword(requestUtils.getUserIdCurrentRequest(), chgPasswordRqstDto);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/basic-info")
     public ResponseEntity<Void> updateBasicInfo(@RequestBody @Valid UserBasicInfoUpdateRqstDto userBasicInfoUpdateRqstDto) {
-        int userId = requestUtils.getUserIdCurrentRequest();
-        userService.updateBasicInfo(userId, userBasicInfoUpdateRqstDto);
+        userService.updateBasicInfo(requestUtils.getUserIdCurrentRequest(), userBasicInfoUpdateRqstDto);
 
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/email")
     public ResponseEntity<Void> updateEmail(@RequestBody @Valid ChgEmailRqstDto chgEmailRqstDto) {
-        int userId = requestUtils.getUserIdCurrentRequest();
-        userService.updateEmail(userId, chgEmailRqstDto.getEmail());
+        userService.updateEmail(requestUtils.getUserIdCurrentRequest(), chgEmailRqstDto.getEmail());
 
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/detail")
     public ResponseEntity<Void> updateDetail(@RequestBody @Valid UserDetailUpdateRqstDto userDetailUpdateRqstDto) {
-        int userId = requestUtils.getUserIdCurrentRequest();
-        userService.updateDetail(userId, userDetailUpdateRqstDto);
+        userService.updateDetail(requestUtils.getUserIdCurrentRequest(), userDetailUpdateRqstDto);
 
         return ResponseEntity.noContent().build();
     }
@@ -104,9 +97,7 @@ public class UserController {
 
     @PutMapping("/unactivated")
     public ResponseEntity<Void> unactivated() {
-        int userId = requestUtils.getUserIdCurrentRequest();
-        userService.unactivated(userId);
-        systemLogService.logInfo(userId + " unactivated account");
+        userService.unactivated(requestUtils.getUserIdCurrentRequest());
         return ResponseEntity.noContent().build();
     }
 

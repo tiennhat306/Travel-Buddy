@@ -6,11 +6,15 @@ import com.travelbuddy.persistence.domain.entity.LogEntity;
 import com.travelbuddy.persistence.repository.LogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static com.travelbuddy.common.constants.PaginationLimitConstants.SYS_LOG_LIMIT;
@@ -57,5 +61,21 @@ public class SystemLogServiceImp implements SystemLogService {
     @Override
     public List<LogEntity> getAllLogs() {
         return logRepository.findAll();
+    }
+
+    @Override
+    public InputStreamResource handleDownloadLogs() {
+        List<LogEntity> logs = getAllLogs();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            for (LogEntity log : logs) {
+                outputStream.write(log.toString().getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+
+        return new InputStreamResource(inputStream);
     }
 }

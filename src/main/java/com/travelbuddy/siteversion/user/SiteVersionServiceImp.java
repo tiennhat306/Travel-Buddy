@@ -16,11 +16,15 @@ import com.travelbuddy.service.admin.ServiceService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.travelbuddy.common.constants.GeographicLimitConstants.MAX_DEG_RADIUS;
 import static com.travelbuddy.common.constants.GeographicLimitConstants.MIN_DEG_RADIUS;
@@ -44,6 +48,7 @@ public class SiteVersionServiceImp implements SiteVersionService {
     private final FeeService feeService;
     private final SiteApprovalRepository siteApprovalRepository;
     private final PageMapper pageMapper;
+    private final BehaviorLogRepository behaviorLogRepository;
 
     @Override
     @Transactional
@@ -65,7 +70,24 @@ public class SiteVersionServiceImp implements SiteVersionService {
 
     @Override
     @Transactional
-    public SiteRepresentationDto getSiteVersionView(Integer siteVersionId) {
+    public SiteRepresentationDto getSiteView(Integer siteId, Integer ownerId) {
+        Optional<Integer> latestApprovedVersionId = siteApprovalRepository.findLatestApprovedSiteVersionIdBySiteId(siteId);
+        if (latestApprovedVersionId.isEmpty()) {
+            throw new NotFoundException("No approved version found for site with id: " + siteId);
+        }
+        BehaviorLogEntity behaviorLog = BehaviorLogEntity.builder()
+                .timestamp(new Timestamp(System.currentTimeMillis()))
+                .userId(ownerId)
+                .siteId(siteId)
+                .behavior("VIEW_SITE")
+                .build();
+        behaviorLogRepository.save(behaviorLog);
+        return getSiteVersionView(latestApprovedVersionId.get(), ownerId);
+    }
+
+    @Override
+    @Transactional
+    public SiteRepresentationDto getSiteVersionView(Integer siteVersionId, Integer ownerId) {
         SiteRepresentationDto resndBody = new SiteRepresentationDto();
         // 1. Get basic infor - siteVersion
         SiteVersionEntity siteVersionInfos = siteVersionRepository.findById(siteVersionId)
@@ -82,6 +104,11 @@ public class SiteVersionServiceImp implements SiteVersionService {
         Integer userId = siteRepository.findById(siteVersionInfos.getSiteId())
                 .orElseThrow(() -> new NotFoundException("Site not found"))
                 .getOwnerId();
+
+        // If the user is not the owner, forbid the access
+        if (!userId.equals(ownerId) && !ownerId.equals(-1)) {
+            throw new NotFoundException("Site not found");
+        }
 
         UserEntity userInfo = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -249,5 +276,18 @@ public class SiteVersionServiceImp implements SiteVersionService {
                 .toList();
         Page<SiteStatusRspndDto> siteStatusesPage = new PageImpl<>(siteStatuses, pageable, siteVersions.getTotalElements());
         return pageMapper.toPageDto(siteStatusesPage);
+    }
+
+    @Override
+    public SiteRepresentationDto adminGetValidSiteRepresention(int siteId) {
+        /* This API returns the representation of siteID, publicly */
+        var latestApprovedVersionId = siteApprovalRepository.findLatestApprovedSiteVersionIdBySiteId(siteId);
+        if (latestApprovedVersionId.isEmpty()) {
+            throw new NotFoundException("No approved version found for site with id: " + siteId);
+        }
+
+        // Success block
+        Integer siteVersionId = latestApprovedVersionId.get();
+        return getSiteVersionView(siteVersionId, -1);
     }
 }

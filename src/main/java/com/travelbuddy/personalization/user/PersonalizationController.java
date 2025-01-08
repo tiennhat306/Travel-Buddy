@@ -1,5 +1,6 @@
 package com.travelbuddy.personalization.user;
 
+import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.persistence.domain.dto.personalization.PersonalizeSubmitRqstDto;
 import com.travelbuddy.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class PersonalizationController {
     private final PersonalizationService personalizationService;
     private final UserService userService;
+    private final RequestUtils requestUtils;
 
     @GetMapping()
     public ResponseEntity<Object> getPersonalization() {
@@ -21,16 +23,11 @@ public class PersonalizationController {
 
     @PostMapping()
     public ResponseEntity<Object> submitChoices(@RequestBody PersonalizeSubmitRqstDto personalizeSubmitRqstDto) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Integer userId = userService.getUserIdByEmailOrUsername(username);
-        Object res = personalizationService.submitChoices(userId, personalizeSubmitRqstDto.getSelectedIds());
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok(personalizationService.submitChoices(requestUtils.getUserIdCurrentRequest(), personalizeSubmitRqstDto.getSelectedIds()));
     }
 
     @GetMapping("/recommendations")
     public ResponseEntity<Object> getRecommendations() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Integer userId = userService.getUserIdByEmailOrUsername(username);
-        return ResponseEntity.ok(personalizationService.getRecommendations(userId));
+        return ResponseEntity.ok(personalizationService.getRecommendations(requestUtils.getUserIdCurrentRequest()));
     }
 }

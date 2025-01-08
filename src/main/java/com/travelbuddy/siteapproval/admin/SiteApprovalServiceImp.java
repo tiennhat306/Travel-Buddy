@@ -6,18 +6,25 @@ import com.travelbuddy.common.exception.errorresponse.EnumNotFitException;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
+import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.notification.NotiEntityTypeEnum;
 import com.travelbuddy.notification.NotificationProducer;
 import com.travelbuddy.notification.NotificationTypeEnum;
+import com.travelbuddy.persistence.domain.dto.site.SiteRepresentationDto;
 import com.travelbuddy.persistence.domain.dto.siteapproval.GeneralViewSiteApprovalRspndDto;
 import com.travelbuddy.persistence.domain.dto.siteapproval.UpdateSiteApprovalRqstDto;
 import com.travelbuddy.persistence.domain.entity.SiteApprovalEntity;
 import com.travelbuddy.persistence.repository.SiteApprovalRepository;
+import com.travelbuddy.siteversion.user.SiteVersionService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +38,9 @@ public class SiteApprovalServiceImp implements SiteApprovalService {
     private final SiteApprovalRepository siteApprovalRepository;
     private final PageMapper pageMapper;
     private final NotificationProducer notificationProducer;
+    private final SystemLogService systemLogService;
+    private final RequestUtils requestUtils;
+    private final SiteVersionService siteVersionService;
 
     @Override
     public void createDefaultSiteApproval(Integer siteVersionId) {
@@ -81,5 +91,20 @@ public class SiteApprovalServiceImp implements SiteApprovalService {
     @Override
     public Integer getLatestApprovedSiteVersionIdBySiteId(Integer siteId) {
         return siteApprovalRepository.findLatestApprovedSiteVersionIdBySiteId(siteId).orElse(null);
+    }
+
+    @Override
+    public void handleApproveSite(UpdateSiteApprovalRqstDto updateSiteApprovalRqstDto, Integer adminId) {
+        updateSiteApproval(updateSiteApprovalRqstDto, adminId);
+        systemLogService.logInfo("Site " + updateSiteApprovalRqstDto.getId() + " approved by " + adminId);
+    }
+
+    @Override
+    public SiteRepresentationDto handleGetSiteApproval(Integer siteApprovalId) {
+        SiteApprovalEntity siteApproval = siteApprovalRepository.findById(siteApprovalId).orElse(null);
+        if (siteApproval == null) {
+            throw new NotFoundException("Site approval not found");
+        }
+        return siteVersionService.getSiteVersionView(siteApproval.getSiteVersionId(), -1);
     }
 }

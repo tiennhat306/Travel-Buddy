@@ -8,6 +8,7 @@ import com.travelbuddy.persistence.domain.dto.service.ServiceCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
 import com.travelbuddy.persistence.repository.*;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,12 +32,14 @@ public class ServiceServiceImp implements ServiceService {
     private final ServiceGroupByTypeRepository serviceGroupByTypeRepository;
     private final SiteVersionRepository siteVersionRepository;
     private final ServicesByGroupRepository servicesByGroupRepository;
+    private final SystemLogService systemLogService;
 
     @Override
     public void createSiteService(ServiceCreateRqstDto serviceCreateRqstDto) {
         if (serviceRepository.existsByServiceNameIgnoreCase(serviceCreateRqstDto.getServiceName()))
             throw new DataAlreadyExistsException("Service already exists");
         ServiceEntity service = ServiceEntity.builder().serviceName(serviceCreateRqstDto.getServiceName()).build();
+        systemLogService.logInfo("New site service created" + serviceCreateRqstDto.getServiceName());
         serviceRepository.save(service);
     }
 
@@ -110,5 +113,16 @@ public class ServiceServiceImp implements ServiceService {
         }
         service.get().setServiceName(serviceCreateRqstDto.getServiceName());
         serviceRepository.save(service.get());
+        systemLogService.logInfo("Site service updated" + serviceCreateRqstDto.getServiceName());
+    }
+
+    @Override
+    public PageDto<ServiceEntity> handleGetSiteServices(String serviceSearch, int page) {
+        if (page < 1) {
+            page = 1;
+        }
+        return serviceSearch.trim().isEmpty()
+                ? getAllSiteServices(page)
+                : searchSiteServices(serviceSearch, page);
     }
 }

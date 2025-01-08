@@ -2,6 +2,7 @@ package com.travelbuddy.systemlog.admin;
 
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.persistence.domain.entity.LogEntity;
+import org.springframework.core.io.InputStreamResource;
 
 import java.util.List;
 
@@ -12,4 +13,5 @@ public interface SystemLogService {
     void logWarn(String message);
     PageDto<LogEntity> getLogs(int page, String searchText);
     List<LogEntity> getAllLogs();
+    InputStreamResource handleDownloadLogs();
 }

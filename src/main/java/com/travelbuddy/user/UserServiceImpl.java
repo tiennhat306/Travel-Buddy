@@ -12,6 +12,7 @@ import com.travelbuddy.persistence.domain.entity.FileEntity;
 import com.travelbuddy.persistence.domain.entity.UserEntity;
 import com.travelbuddy.persistence.repository.FileRepository;
 import com.travelbuddy.persistence.repository.UserRepository;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final FileRepository fileRepository;
     private final StorageExecutorService storageExecutorService;
     private final PageMapper pageMapper;
+    private final SystemLogService systemLogService;
 
     @Override
     public int getUserIdByEmailOrUsername(String email) {
@@ -55,6 +57,7 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(chgPasswordRqstDto.getNewPassword()));
         userRepository.save(user);
+        systemLogService.logInfo(userId + " changed password");
     }
 
     @Override
@@ -128,6 +131,7 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(false);
 
         userRepository.save(user);
+        systemLogService.logInfo(userId + " unactivated account");
     }
 
     @Override

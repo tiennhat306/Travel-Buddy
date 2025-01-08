@@ -29,14 +29,7 @@ public class SiteTypeController {
 
     @GetMapping("/{siteTypeId}/services")
     public ResponseEntity<Object> getAssociatedServices(@PathVariable Integer siteTypeId) {
-        // 1. Get siteType from siteTypeId, check if Not found
-        SiteTypeEntity siteType = siteTypeRepository.findById(siteTypeId)
-                .orElseThrow(() -> new NotFoundException("Site type not found"));
-        List<GroupedSiteServicesRspnDto> groupedSiteServices = siteTypeService.getAssociatedServiceGroups(siteTypeId);
-        ServiceByTypeRspnDto servicesByTypeRspnDto = new ServiceByTypeRspnDto();
-        SiteTypeRspnDto siteTypeRspnDto = new SiteTypeRspnDto(siteType);
-        servicesByTypeRspnDto.setSiteType(siteTypeRspnDto);
-        servicesByTypeRspnDto.setGroupedSiteServices(groupedSiteServices);
+        ServiceByTypeRspnDto servicesByTypeRspnDto = siteTypeService.handleGetAssociatedServices(siteTypeId);
         return ResponseEntity.ok(servicesByTypeRspnDto);
     }
 
@@ -51,13 +44,7 @@ public class SiteTypeController {
                                                @RequestParam(name = "page", required = false, defaultValue = "1") int page,
                                                @RequestParam(name = "limit", required = false) Integer limit) {
 
-        // Check for limit is set
-        if (limit == null) {
-            limit = PaginationLimitConstants.SITE_TYPE_LIMIT;
-        }
-        PageDto<SiteTypeRspnDto> siteTypesPage = siteTypeSearch.trim().isEmpty()
-                ? siteTypeService.getAllSiteTypes(page, limit)
-                : siteTypeService.searchSiteTypes(siteTypeSearch, page, limit);
+        PageDto<SiteTypeRspnDto> siteTypesPage = siteTypeService.handleGetSiteTypes(page, limit, siteTypeSearch);
 
         return ResponseEntity.ok(siteTypesPage);
     }

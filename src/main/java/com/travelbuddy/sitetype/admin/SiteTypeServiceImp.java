@@ -1,20 +1,23 @@
 package com.travelbuddy.sitetype.admin;
 
+import com.travelbuddy.aspectsbytype.admin.AspectsByTypeService;
+import com.travelbuddy.common.constants.PaginationLimitConstants;
 import com.travelbuddy.common.exception.errorresponse.DataAlreadyExistsException;
 import com.travelbuddy.common.exception.errorresponse.EnumNotFitException;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
 import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.mapper.SiteTypeMapper;
+import com.travelbuddy.persistence.domain.dto.aspectsbytype.AspectsByTypeEditRqstDto;
 import com.travelbuddy.persistence.domain.dto.siteservice.GroupedSiteServicesRspnDto;
+import com.travelbuddy.persistence.domain.dto.siteservice.ServiceByTypeRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
-import com.travelbuddy.persistence.repository.ServiceGroupByTypeRepository;
-import com.travelbuddy.persistence.repository.ServiceGroupRepository;
-import com.travelbuddy.persistence.repository.ServicesByGroupRepository;
-import com.travelbuddy.persistence.repository.SiteTypeRepository;
+import com.travelbuddy.persistence.repository.*;
 import com.travelbuddy.common.constants.DualStateEnum;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeCreateRqstDto;
 import com.travelbuddy.persistence.domain.dto.sitetype.SiteTypeRspnDto;
+import com.travelbuddy.servicegroup.admin.ServiceGroupService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,7 +26,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +39,10 @@ public class SiteTypeServiceImp implements SiteTypeService {
     private final SiteTypeMapper siteTypeMapper;
     private final PageMapper pageMapper;
     private final ServiceGroupRepository serviceGroupRepository;
+    private final ServiceGroupService serviceGroupService;
+    private final AspectsByTypeRepository aspectsByTypeRepository;
+    private final SystemLogService systemLogService;
+    private final AspectsByTypeService aspectsByTypeService;
 
     @Override
     public Integer createSiteType(SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
@@ -127,7 +136,78 @@ public class SiteTypeServiceImp implements SiteTypeService {
     }
 
     @Override
-    public List<Integer> getAllSiteTypeId() {
-        return siteTypeRepository.getAllSiteTypeId();
+    public Integer handlePostSiteType(SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
+        if (siteTypeRepository.existsByTypeNameIgnoreCase(siteTypeCreateRqstDto.getSiteTypeName()))
+            throw new DataAlreadyExistsException("Site type already exists");
+
+        Integer siteTypeId = createSiteType(siteTypeCreateRqstDto);
+        for (Integer serviceGroupId : siteTypeCreateRqstDto.getServiceGroups()) {
+            serviceGroupService.associateType(serviceGroupId, siteTypeId);
+        }
+        List<AspectsByTypeEntity> aspectsByType = new ArrayList<AspectsByTypeEntity>();
+        for (String aspectName : siteTypeCreateRqstDto.getAspects()) {
+            aspectsByType.add(AspectsByTypeEntity.builder().typeId(siteTypeId).aspectName(aspectName).build());
+        }
+        aspectsByTypeRepository.saveAll(aspectsByType);
+        systemLogService.logInfo("Site type with id " + siteTypeId + " created");
+        return siteTypeId;
+    }
+
+    @Override
+    public void handleUpdateSiteType(int siteTypeId, SiteTypeCreateRqstDto siteTypeCreateRqstDto) {
+        updateSiteType(siteTypeId, siteTypeCreateRqstDto);
+        systemLogService.logInfo("Site type with id " + siteTypeId + " updated");
+    }
+
+    @Override
+    public void handlePostAspect(Integer typeId, List<String> aspectNames) {
+        aspectsByTypeService.addNewAspects(typeId, aspectNames);
+        systemLogService.logInfo("New aspects added to site type with id " + typeId);
+    }
+
+    @Override
+    public void handleUpdateAspect(AspectsByTypeEditRqstDto aspectsByTypeEditRqstDto) {
+        AspectsByTypeEntity aspect = aspectsByTypeRepository.findById(aspectsByTypeEditRqstDto.getId())
+                .orElseThrow(() -> new NotFoundException("Aspect not found"));
+        List<AspectsByTypeEntity> aspectsByType = aspectsByTypeRepository.findAllByTypeId(aspect.getTypeId())
+                .orElseThrow(() -> new NotFoundException("Aspect not found"));
+        if (aspectsByType.stream().anyMatch(a -> a.getAspectName().equalsIgnoreCase(aspectsByTypeEditRqstDto.getNewAspectName())))
+            throw new DataAlreadyExistsException("Aspect already exists");
+        aspectsByTypeService.updateAspectName(aspectsByTypeEditRqstDto.getId(), aspectsByTypeEditRqstDto.getNewAspectName());
+        systemLogService.logInfo("Aspect with id " + aspectsByTypeEditRqstDto.getId() + " updated");
+    }
+
+    @Override
+    public Map<String, Object> handleDeleteAspect(List<Integer> aspectIds) {
+        List<AspectsByTypeEntity> aspectsByType = aspectsByTypeService.deleteAspectsByIds(aspectIds);
+        Map<String, Object> response = new HashMap<>();
+        response.put("failed", aspectsByType);
+        systemLogService.logInfo("Aspects with ids " + aspectIds + " deleted");
+        return response;
+    }
+
+    @Override
+    public ServiceByTypeRspnDto handleGetAssociatedServices(Integer siteTypeId) {
+        // 1. Get siteType from siteTypeId, check if Not found
+        SiteTypeEntity siteType = siteTypeRepository.findById(siteTypeId)
+                .orElseThrow(() -> new NotFoundException("Site type not found"));
+        List<GroupedSiteServicesRspnDto> groupedSiteServices = getAssociatedServiceGroups(siteTypeId);
+        ServiceByTypeRspnDto servicesByTypeRspnDto = new ServiceByTypeRspnDto();
+        SiteTypeRspnDto siteTypeRspnDto = new SiteTypeRspnDto(siteType);
+        servicesByTypeRspnDto.setSiteType(siteTypeRspnDto);
+        servicesByTypeRspnDto.setGroupedSiteServices(groupedSiteServices);
+        return servicesByTypeRspnDto;
+    }
+
+    @Override
+    public PageDto<SiteTypeRspnDto> handleGetSiteTypes(Integer page, Integer limit, String siteTypeSearch) {
+        // Check for limit is set
+        if (limit == null) {
+            limit = PaginationLimitConstants.SITE_TYPE_LIMIT;
+        }
+        PageDto<SiteTypeRspnDto> siteTypesPage = siteTypeSearch.trim().isEmpty()
+                ? getAllSiteTypes(page, limit)
+                : searchSiteTypes(siteTypeSearch, page, limit);
+        return siteTypesPage;
     }
 }

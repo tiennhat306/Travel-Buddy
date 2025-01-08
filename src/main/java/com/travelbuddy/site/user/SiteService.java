@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface SiteService {
     Integer createSiteWithSiteVersion(SiteCreateRqstDto siteCreateRqstDto);
-    Integer updateSite(SiteUpdateRqstDto siteUpdateRqstDto);
+    Integer updateSite(SiteUpdateRqstDto siteUpdateRqstDto, Integer ownerId);
     SiteBasicInfoRspnDto getSiteBasicRepresentation(Integer siteID);
 
     void likeSite(int siteId);

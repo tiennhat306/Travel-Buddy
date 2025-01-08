@@ -14,6 +14,7 @@ import com.travelbuddy.persistence.domain.dto.travelplan.*;
 import com.travelbuddy.persistence.domain.entity.*;
 import com.travelbuddy.persistence.repository.*;
 import com.travelbuddy.site.user.SiteService;
+import com.travelbuddy.systemlog.admin.SystemLogService;
 import com.travelbuddy.upload.cloud.StorageExecutorService;
 import com.travelbuddy.upload.cloud.dto.FileRspnDto;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
     private final StorageExecutorService storageExecutorService;
     private final FileRepository fileRepository;
     private final NotificationProducer notificationProducer;
+    private final SystemLogService systemLogService;
 
     @Override
     public int createTravelPlan(TravelPlanCreateRqstDto travelPlanCreateRqstDto) {
@@ -84,7 +86,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         travelPlanUserEntity.setRole("OWNER");
 
         travelPlanUserRepository.save(travelPlanUserEntity);
-
+        systemLogService.logInfo("Travel plan " + travelPlanId + " created");
         return travelPlanId;
     }
 
@@ -165,8 +167,8 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         }
 
         travelPlanEntity.setCover(newCover);
-
         travelPlanRepository.save(travelPlanEntity);
+        systemLogService.logInfo("Travel plan " + travelPlanId + " changed");
     }
 
     @Override
@@ -193,6 +195,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
                         .build())
                 .role("MEMBER")
                 .build());
+        systemLogService.logInfo("User " + userId + " added to travel plan " + travelPlanId);
     }
 
     @Override
@@ -217,6 +220,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         }
 
         travelPlanUserRepository.deleteByTravelPlanIdAndUserId(travelPlanId, userId);
+        systemLogService.logInfo("User " + userId + " removed from travel plan " + travelPlanId);
     }
 
     @Override
@@ -245,6 +249,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         } else {
             throw new UserInputException("Role must be ADMIN or MEMBER");
         }
+        systemLogService.logInfo("User " + chgMemberRoleRqstDto.getUserId() + " role changed in travel plan " + travelPlanId);
     }
 
     @Override
@@ -298,6 +303,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         jsonObject.put("entityId", travelPlanId);
         jsonObject.put("content", contentObject.toString());
         notificationProducer.sendNotification("notifications", jsonObject.toString());
+        systemLogService.logInfo("Site " + travelPlanSiteCreateRqstDto.getSiteId() + " added to travel plan " + travelPlanId);
     }
 
     @Override
@@ -332,6 +338,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         jsonObject.put("entityId", travelPlanId);
         jsonObject.put("content", contentObject.toString());
         notificationProducer.sendNotification("notifications", jsonObject.toString());
+        systemLogService.logInfo("Site " + siteId + " removed from travel plan " + travelPlanId);
     }
 
     @Override
@@ -401,6 +408,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         jsonObject.put("entityId", travelPlanId);
         jsonObject.put("content", contentObject.toString());
         notificationProducer.sendNotification("notifications", jsonObject.toString());
+        systemLogService.logInfo("Site " + travelPlanSiteUpdateRqstDto.getSiteId() + " updated in travel plan " + travelPlanId);
     }
 
     @Override
@@ -414,6 +422,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         }
 
         travelPlanRepository.deleteById(travelPlanId);
+        systemLogService.logInfo("Travel plan " + travelPlanId + " deleted");
     }
 
     @Override
