@@ -29,4 +29,6 @@ public interface TravelPlanService {
     void updateTravelPlan(int travelPlanId, TravelPlanUpdateRqstDto travelPlanUpdateRqstDto);
 
     void changeCover(int travelPlanId, FileRspnDto uploadedFile);
+
+    void exitTravelPlan(int travelPlanId);
 }

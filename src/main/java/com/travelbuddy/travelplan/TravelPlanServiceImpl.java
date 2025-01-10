@@ -28,8 +28,8 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class TravelPlanServiceImpl implements TravelPlanService {
     private final TravelPlanRepository travelPlanRepository;
     private final UserRepository userRepository;
@@ -167,6 +167,23 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         travelPlanEntity.setCover(newCover);
 
         travelPlanRepository.save(travelPlanEntity);
+    }
+
+    @Override
+    public void exitTravelPlan(int travelPlanId) {
+        TravelPlanEntity travelPlanEntity = travelPlanRepository.findById(travelPlanId)
+                .orElseThrow(() -> new NotFoundException("Travel plan not found"));
+
+        int requestUserId = requestUtils.getUserIdCurrentRequest();
+        if (!travelPlanUserRepository.isMember(travelPlanId, requestUserId)) {
+            throw new NotFoundException("User not in travel plan");
+        }
+
+        if (travelPlanUserRepository.isOwner(travelPlanId, requestUserId)) {
+            throw new ForbiddenException("Owner can't exit travel plan");
+        }
+
+        travelPlanUserRepository.deleteByTravelPlanIdAndUserId(travelPlanId, requestUserId);
     }
 
     @Override

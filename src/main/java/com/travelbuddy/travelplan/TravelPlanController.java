@@ -132,4 +132,11 @@ public class TravelPlanController {
 
         return ResponseEntity.ok(travelPlans);
     }
+
+    // exit travel plan
+    @DeleteMapping("/{travelPlanId}/exit")
+    public ResponseEntity<Void> exitTravelPlan(@PathVariable int travelPlanId) {
+        travelPlanService.exitTravelPlan(travelPlanId);
+        return ResponseEntity.ok().build();
+    }
 }
