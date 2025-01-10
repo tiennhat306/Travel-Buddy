@@ -244,9 +244,9 @@ public class SiteServiceImp implements SiteService {
     @Override
     public PageDto<SiteBasicInfoRspnDto> searchSites(String siteSearch, int page) {
         Pageable pageable = PageRequest.of(page - 1, PaginationLimitConstants.SITE_SEARCH_LIMIT);
-        Specification<SiteVersionEntity> spec = siteVersionSpecifications.customSearchAndLatestApproved(siteSearch);
+//        Specification<SiteVersionEntity> spec = siteVersionSpecifications.customSearchAndLatestApproved(siteSearch);
 
-        Page<SiteVersionEntity> siteVersionEntities = siteVersionRepository.findAll(spec, pageable);
+        Page<SiteVersionEntity> siteVersionEntities = siteVersionRepository.findAllBySiteNameOrSiteAddress(siteSearch, pageable);
 
         return pageMapper.toPageDto(siteVersionEntities.map(SiteBasicInfoRspnDto::new));
     }

@@ -41,4 +41,13 @@ public interface SiteVersionRepository extends JpaRepository<SiteVersionEntity, 
 
     @Query("SELECT sv FROM SiteVersionEntity sv JOIN SiteApprovalEntity sa ON sv.id = sa.siteVersionId WHERE sa.status = 'APPROVED' AND sv.siteType.id IN :typeIds ORDER BY RANDOM() LIMIT :limit")
     List<SiteVersionEntity> findBySiteTypeIds(@Param("typeIds") List<Integer> typeIds, @Param("limit") int limit);
+
+    @Query("SELECT sv FROM SiteVersionEntity sv " +
+            "JOIN SiteApprovalEntity sa ON sv.id = sa.siteVersionId " +
+            "WHERE sa.status = 'APPROVED' " +
+            "AND sv.siteEntity.enabled = true " +
+            "AND sv.id = (SELECT max(sv2.id) FROM SiteVersionEntity sv2 JOIN SiteApprovalEntity sa2 ON sv2.id = sa2.siteVersionId WHERE sv2.siteEntity.id = sv.siteEntity.id AND sa2.status = 'APPROVED' GROUP BY sv2.siteEntity.id) " +
+            "AND (cast(unaccent(lower(sv.siteName)) as String) LIKE concat('%',unaccent(lower(:siteSearch)), '%') " +
+            "OR cast(unaccent(lower(sv.resolvedAddress)) as String) LIKE concat('%',unaccent(lower(:siteSearch)),'%'))")
+    Page<SiteVersionEntity> findAllBySiteNameOrSiteAddress(@Param("siteSearch") String siteSearch, Pageable pageable);
 }
