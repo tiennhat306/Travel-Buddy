@@ -13,5 +13,6 @@ public class MessageService {
 
     public void sendNotification(String userId, String message) {
         messagingTemplate.convertAndSendToUser(userId, queue, message);
+        // client will receive the message on /user/queue/notifications
     }
 }

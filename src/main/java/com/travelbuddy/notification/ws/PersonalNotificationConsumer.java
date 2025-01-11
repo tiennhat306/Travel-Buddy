@@ -52,7 +52,7 @@ public class PersonalNotificationConsumer {
     }
 
     private void sendNotification(int userId, String message) {
-        System.out.println("Sending notification: " + message);
+        System.out.println("Sending notification to : " + userId + " | " + message);
         messageService.sendNotification(String.valueOf(userId), message);
     }
 
