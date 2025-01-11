@@ -1,10 +1,12 @@
-package com.travelbuddy.notification;
+package com.travelbuddy.notification.rest;
 
 import com.travelbuddy.common.constants.PaginationLimitConstants;
 import com.travelbuddy.common.constants.ReactionTypeEnum;
 import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
 import com.travelbuddy.persistence.repository.*;

@@ -1,4 +1,4 @@
-package com.travelbuddy.notification;
+package com.travelbuddy.notification.rest;
 
 import com.travelbuddy.persistence.domain.entity.UserEntity;
 import jakarta.persistence.*;

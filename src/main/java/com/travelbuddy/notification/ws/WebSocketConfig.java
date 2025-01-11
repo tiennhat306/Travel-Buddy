@@ -1,4 +1,4 @@
-package com.travelbuddy.notification;
+package com.travelbuddy.notification.ws;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final CustomHandshakeHandler customHandshakeHandler;
+    private final UserHandshakeHandler userHandshakeHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -23,6 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws").setAllowedOrigins("*")
                 .addInterceptors(customHandshakeHandler)
+                .setHandshakeHandler(userHandshakeHandler)
                 .withSockJS();
     }
 }

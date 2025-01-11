@@ -1,18 +1,17 @@
-package com.travelbuddy.notification;
+package com.travelbuddy.notification.ws;
 
-import com.google.gson.JsonObject;
 import com.travelbuddy.common.constants.ReactionTypeEnum;
 import com.travelbuddy.common.exception.errorresponse.NotFoundException;
+import com.travelbuddy.notification.NotiEntityTypeEnum;
+import com.travelbuddy.notification.NotificationTypeEnum;
+import com.travelbuddy.notification.rest.NotificationEntity;
+import com.travelbuddy.notification.rest.NotificationRepository;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.entity.*;
 import com.travelbuddy.persistence.repository.*;
 import com.travelbuddy.site.user.SiteService;
-import com.travelbuddy.siteapproval.admin.SiteApprovalService;
-import com.travelbuddy.sitereviews.SiteReviewService;
-import com.travelbuddy.siteversion.user.SiteVersionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaHandler;
@@ -31,7 +30,7 @@ import static com.travelbuddy.notification.NotificationTypeEnum.*;
 @RequiredArgsConstructor
 @KafkaListener(topics = "notifications", groupId = "travel-buddy")
 public class PersonalNotificationConsumer {
-    private final SimpMessagingTemplate messagingTemplate;
+    private final MessageService messageService;
     private final NotificationRepository notificationRepository;
     private final SiteRepository siteRepository;
     private final UserRepository userRepository;
@@ -53,9 +52,8 @@ public class PersonalNotificationConsumer {
     }
 
     private void sendNotification(int userId, String message) {
-        String queue = "/queue/user-" + userId;
-        System.out.println("Sending notification to " + queue + ": " + message);
-        messagingTemplate.convertAndSend(queue, message);
+        System.out.println("Sending notification: " + message);
+        messageService.sendNotification(String.valueOf(userId), message);
     }
 
     private Integer saveNotification(int userId, int type, int entityType, int entityId, String content) {
@@ -71,7 +69,6 @@ public class PersonalNotificationConsumer {
 
     private void handleNotification(int type, int entityType, int entityId, JSONObject payload) {
         try {
-            System.out.println("HEHE" + NotificationTypeEnum.valueOf(type) + "and" + NotificationTypeEnum.valueOf(type).equals(SITE_REACTION));
             switch (NotificationTypeEnum.valueOf(type)) {
                 case SITE_COMMENT: {
                     int userId = payload.getInt("userId");
@@ -84,6 +81,9 @@ public class PersonalNotificationConsumer {
                         }
                         SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);
                         int destinationUserId = siteEntity.getOwnerId();
+                        if (destinationUserId == userId) {
+                            break;
+                        }
                         NotificationEntity notificationEntity = notificationRepository.findByUserIdAndTypeAndEntityTypeAndEntityId(destinationUserId, type, entityType, entityId);
 
                         if (notificationEntity == null) {
@@ -148,6 +148,9 @@ public class PersonalNotificationConsumer {
                         SiteEntity siteEntity = siteRepository.findById(entityId).orElseThrow(() -> new NotFoundException("Site not found"));
                         SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);
                         int destinationUserId = siteEntity.getOwnerId();
+                        if (destinationUserId == userId) {
+                            break;
+                        }
                         NotificationEntity notificationEntity = notificationRepository.findByUserIdAndTypeAndEntityTypeAndEntityId(destinationUserId, type, entityType, entityId);
 
                         if (notificationEntity == null) {
@@ -209,6 +212,9 @@ public class PersonalNotificationConsumer {
                         SiteReviewEntity siteReviewEntity = siteReviewRepository.findById(entityId).orElseThrow(() -> new NotFoundException("Site review not found"));
                         SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(siteReviewEntity.getSiteId());
                         int destinationUserId = siteReviewEntity.getUserId();
+                        if (destinationUserId == userId) {
+                            break;
+                        }
                         NotificationEntity notificationEntity = notificationRepository.findByUserIdAndTypeAndEntityTypeAndEntityId(destinationUserId, type, entityType, entityId);
 
                         if (notificationEntity == null) {
@@ -276,6 +282,9 @@ public class PersonalNotificationConsumer {
                         List<Integer> destinationUserIds = travelPlanRepository.findUserIdsById(entityId);
 
                         for (int destinationUserId : destinationUserIds) {
+                            if (destinationUserId == userId) {
+                                continue;
+                            }
                             String content = payload.getString("content");
                             int notificationId = saveNotification(destinationUserId, type, entityType, entityId, content);
 

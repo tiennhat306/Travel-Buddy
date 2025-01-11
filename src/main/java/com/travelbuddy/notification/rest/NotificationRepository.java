@@ -1,4 +1,4 @@
-package com.travelbuddy.notification;
+package com.travelbuddy.notification.rest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,4 +1,4 @@
-package com.travelbuddy.notification;
+package com.travelbuddy.notification.ws;
 
 import com.travelbuddy.auth.token.InvalidBearerTokenException;
 import com.travelbuddy.auth.token.jwt.InvalidJWTException;
@@ -6,7 +6,6 @@ import com.travelbuddy.auth.token.jwt.JWTProcessor;
 import com.travelbuddy.auth.token.jwt.VerifiedJWT;
 import com.travelbuddy.user.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -38,7 +37,7 @@ public class CustomHandshakeHandler implements HandshakeInterceptor {
             token = token.substring(6);
             System.out.println(token);
             Integer userId = validateAndExtractUserIdFromToken(token); // Xác thực và lấy userId
-            attributes.put("userId", userId);
+            attributes.put("userId", String.valueOf(userId));
             if (userId != null) {
                 return true;
             }

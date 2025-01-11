@@ -10,7 +10,7 @@ import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.mapper.SiteReviewMapper;
 import com.travelbuddy.notification.NotiEntityTypeEnum;
-import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.ws.NotificationProducer;
 import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.site.SiteBasicInfoRspnDto;
 import com.travelbuddy.persistence.domain.dto.sitereview.*;

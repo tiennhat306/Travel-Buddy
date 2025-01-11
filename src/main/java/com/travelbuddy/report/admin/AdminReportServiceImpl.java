@@ -5,7 +5,7 @@ import com.travelbuddy.common.mapper.PageMapper;
 import com.travelbuddy.common.paging.PageDto;
 import com.travelbuddy.common.utils.RequestUtils;
 import com.travelbuddy.notification.NotiEntityTypeEnum;
-import com.travelbuddy.notification.NotificationProducer;
+import com.travelbuddy.notification.ws.NotificationProducer;
 import com.travelbuddy.notification.NotificationTypeEnum;
 import com.travelbuddy.persistence.domain.dto.report.admin.ReportDetailRspnDto;
 import com.travelbuddy.persistence.domain.dto.report.admin.SiteReportRspnDto;
