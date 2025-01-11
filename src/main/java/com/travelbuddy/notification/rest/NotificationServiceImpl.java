@@ -81,7 +81,7 @@ public class NotificationServiceImpl implements NotificationService {
                 SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);
                 jsonObject.put("userId", lastReview.getUserId());
                 jsonObject.put("userName", lastReview.getUserEntity().getFullName());
-                jsonObject.put("userImageUrl", lastReview.getUserEntity().getAvatar() == null ? null : lastReview.getUserEntity().getAvatar());
+                jsonObject.put("userImageUrl", lastReview.getUserEntity().getAvatar() == null ? null : lastReview.getUserEntity().getAvatar().getUrl());
                 jsonObject.put("message", " Đã bình luận về địa điểm ");
                 jsonObject.put("siteId", entityId);
                 jsonObject.put("siteName", siteBasicInfoRspnDto.getSiteName());
@@ -107,7 +107,7 @@ public class NotificationServiceImpl implements NotificationService {
                 SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(entityId);
                 jsonObject.put("userId", lastSiteReaction.getUserId());
                 jsonObject.put("userName", lastSiteReaction.getUserEntity().getFullName());
-                jsonObject.put("userImageUrl", lastSiteReaction.getUserEntity().getAvatar() == null ? null : lastSiteReaction.getUserEntity().getAvatar());
+                jsonObject.put("userImageUrl", lastSiteReaction.getUserEntity().getAvatar() == null ? null : lastSiteReaction.getUserEntity().getAvatar().getUrl());
                 jsonObject.put("message", " Đã thích địa điểm ");
                 jsonObject.put("siteId", entityId);
                 jsonObject.put("siteName", siteBasicInfoRspnDto.getSiteName());
@@ -136,7 +136,7 @@ public class NotificationServiceImpl implements NotificationService {
                 SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(siteReview.getSiteId());
                 jsonObject.put("userId", lastReviewReaction.getUserId());
                 jsonObject.put("userName", lastReviewReaction.getUserEntity().getFullName());
-                jsonObject.put("userImageUrl", lastReviewReaction.getUserEntity().getAvatar() == null ? null : lastReviewReaction.getUserEntity().getAvatar());
+                jsonObject.put("userImageUrl", lastReviewReaction.getUserEntity().getAvatar() == null ? null : lastReviewReaction.getUserEntity().getAvatar().getUrl());
                 jsonObject.put("message", " Đã thích bài đánh giá về địa điểm ");
                 jsonObject.put("siteId", siteReview.getSiteId());
                 jsonObject.put("siteName", siteBasicInfoRspnDto.getSiteName());
@@ -170,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService {
                 }
                 jsonObject.put("userId", userId);
                 jsonObject.put("userName", user.getFullName());
-                jsonObject.put("userImageUrl", user.getAvatar() == null ? null : user.getAvatar());
+                jsonObject.put("userImageUrl", user.getAvatar() == null ? null : user.getAvatar().getUrl());
                 jsonObject.put("planId", entityId);
                 jsonObject.put("planName", travelPlan.getName());
                 jsonObject.put("content", content);
