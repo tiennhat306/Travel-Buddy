@@ -22,10 +22,7 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -48,7 +45,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         UserEntity userEntity = userRepository.findById(requestUserId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (travelPlanCreateRqstDto.getStartTime().isAfter(travelPlanCreateRqstDto.getEndTime())) {
+        if (travelPlanCreateRqstDto.getStartTime().isAfter(travelPlanCreateRqstDto.getEndTime()) || travelPlanCreateRqstDto.getStartTime().isEqual(travelPlanCreateRqstDto.getEndTime())) {
             throw new UserInputException("Start time must be before end time");
         }
 
@@ -98,7 +95,7 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             throw new ForbiddenException("Don't have permission to update travel plan");
         }
 
-        if (travelPlanUpdateRqstDto.getStartTime().isAfter(travelPlanUpdateRqstDto.getEndTime())) {
+        if (travelPlanUpdateRqstDto.getStartTime().isAfter(travelPlanUpdateRqstDto.getEndTime()) || travelPlanUpdateRqstDto.getStartTime().isEqual(travelPlanUpdateRqstDto.getEndTime())) {
             throw new UserInputException("Start time must be before end time");
         }
 
@@ -277,6 +274,10 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             throw new ForbiddenException("Don't have permission to add site to travel plan");
         }
 
+        if (travelPlanSiteCreateRqstDto.getStartTime().isAfter(travelPlanSiteCreateRqstDto.getEndTime()) || travelPlanSiteCreateRqstDto.getStartTime().isEqual(travelPlanSiteCreateRqstDto.getEndTime())) {
+            throw new UserInputException("Site start time must be before end time");
+        }
+
         if (travelPlanSiteCreateRqstDto.getStartTime().isBefore(travelPlanEntity.getStartTime())) {
             throw new UserInputException("Site start time must be after travel plan start time");
         }
@@ -287,6 +288,27 @@ public class TravelPlanServiceImpl implements TravelPlanService {
 
         if (travelPlanEntity.getSiteEntities().contains(siteEntity)) {
             throw new DataAlreadyExistsException("Site already in travel plan");
+        }
+
+        for (SiteEntity site : travelPlanEntity.getSiteEntities()) {
+            TravelPlanSiteEntity travelPlanSiteEntity = travelPlanSiteRepository.findByTravelPlanIdAndSiteId(travelPlanId, site.getId())
+                    .orElseThrow(() -> new NotFoundException("Site not in travel plan"));
+
+            if (travelPlanSiteCreateRqstDto.getStartTime().isAfter(travelPlanSiteEntity.getStartTime()) && travelPlanSiteCreateRqstDto.getStartTime().isBefore(travelPlanSiteEntity.getEndTime())) {
+                throw new UserInputException("Site time conflict");
+            }
+
+            if (travelPlanSiteCreateRqstDto.getEndTime().isAfter(travelPlanSiteEntity.getStartTime()) && travelPlanSiteCreateRqstDto.getEndTime().isBefore(travelPlanSiteEntity.getEndTime())) {
+                throw new UserInputException("Site time conflict");
+            }
+
+            if (travelPlanSiteCreateRqstDto.getStartTime().isBefore(travelPlanSiteEntity.getStartTime()) && travelPlanSiteCreateRqstDto.getEndTime().isAfter(travelPlanSiteEntity.getStartTime())) {
+                throw new UserInputException("Site time conflict");
+            }
+
+            if (travelPlanSiteCreateRqstDto.getStartTime().isEqual(travelPlanSiteEntity.getStartTime()) && travelPlanSiteCreateRqstDto.getEndTime().isEqual(travelPlanSiteEntity.getEndTime())) {
+                throw new UserInputException("Site time conflict");
+            }
         }
 
         TravelPlanSiteEntity travelPlanSiteEntity = TravelPlanSiteEntity.builder()
@@ -371,12 +393,39 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         TravelPlanSiteEntity travelPlanSiteEntity = travelPlanSiteRepository.findByTravelPlanIdAndSiteId(travelPlanId, travelPlanSiteUpdateRqstDto.getSiteId())
                 .orElseThrow(() -> new NotFoundException("Site not in travel plan"));
 
+        if (travelPlanSiteUpdateRqstDto.getStartTime().isAfter(travelPlanSiteUpdateRqstDto.getEndTime()) || travelPlanSiteUpdateRqstDto.getStartTime().isEqual(travelPlanSiteUpdateRqstDto.getEndTime())) {
+            throw new UserInputException("Site start time must be before end time");
+        }
+
         if (travelPlanSiteUpdateRqstDto.getStartTime().isBefore(travelPlanEntity.getStartTime())) {
             throw new UserInputException("Site start time must be after travel plan start time");
         }
 
         if (travelPlanSiteUpdateRqstDto.getEndTime().isAfter(travelPlanEntity.getEndTime())) {
             throw new UserInputException("Site end time must be before travel plan end time");
+        }
+
+        for (SiteEntity site : travelPlanEntity.getSiteEntities()) {
+            if (!Objects.equals(site.getId(), siteEntity.getId())) {
+                TravelPlanSiteEntity travelPlanSite = travelPlanSiteRepository.findByTravelPlanIdAndSiteId(travelPlanId, site.getId())
+                        .orElseThrow(() -> new NotFoundException("Site not in travel plan"));
+
+                if (travelPlanSiteUpdateRqstDto.getStartTime().isAfter(travelPlanSite.getStartTime()) && travelPlanSiteUpdateRqstDto.getStartTime().isBefore(travelPlanSite.getEndTime())) {
+                    throw new UserInputException("Site time conflict");
+                }
+
+                if (travelPlanSiteUpdateRqstDto.getEndTime().isAfter(travelPlanSite.getStartTime()) && travelPlanSiteUpdateRqstDto.getEndTime().isBefore(travelPlanSite.getEndTime())) {
+                    throw new UserInputException("Site time conflict");
+                }
+
+                if (travelPlanSiteUpdateRqstDto.getStartTime().isBefore(travelPlanSite.getStartTime()) && travelPlanSiteUpdateRqstDto.getEndTime().isAfter(travelPlanSite.getStartTime())) {
+                    throw new UserInputException("Site time conflict");
+                }
+
+                if (travelPlanSiteUpdateRqstDto.getStartTime().isEqual(travelPlanSite.getStartTime()) && travelPlanSiteUpdateRqstDto.getEndTime().isEqual(travelPlanSite.getEndTime())) {
+                    throw new UserInputException("Site time conflict");
+                }
+            }
         }
 
         JSONObject fromObject = new JSONObject();
@@ -438,6 +487,11 @@ public class TravelPlanServiceImpl implements TravelPlanService {
         TravelPlanEntity travelPlanEntity = travelPlanRepository.findById(travelPlanId)
                 .orElseThrow(() -> new NotFoundException("Travel plan not found"));
 
+        int requestUserId = requestUtils.getUserIdCurrentRequest();
+        if (!travelPlanUserRepository.isMember(travelPlanId, requestUserId)) {
+            throw new NotFoundException("User not in travel plan");
+        }
+
         TravelPlanRspnDto travelPlanRspnDto = new TravelPlanRspnDto();
         travelPlanRspnDto.setName(travelPlanEntity.getName());
         travelPlanRspnDto.setDescription(travelPlanEntity.getDescription());
@@ -450,16 +504,16 @@ public class TravelPlanServiceImpl implements TravelPlanService {
             TravelPlanSiteEntity travelPlanSiteEntity = travelPlanSiteRepository.findByTravelPlanIdAndSiteId(travelPlanId, siteEntity.getId())
                     .orElseThrow(() -> new NotFoundException("Site not in travel plan"));
 
-            TravelPlanSiteRspnDto siteRspnDto = new TravelPlanSiteRspnDto();
-            siteRspnDto.setName(travelPlanSiteEntity.getName());
-            siteRspnDto.setDescription(travelPlanSiteEntity.getDescription());
-            siteRspnDto.setStartTime(String.valueOf(travelPlanSiteEntity.getStartTime()));
-            siteRspnDto.setEndTime(String.valueOf(travelPlanSiteEntity.getEndTime()));
+            TravelPlanSiteRspnDto travelPlanSiteRspnDto = new TravelPlanSiteRspnDto();
+            travelPlanSiteRspnDto.setName(travelPlanSiteEntity.getName());
+            travelPlanSiteRspnDto.setDescription(travelPlanSiteEntity.getDescription());
+            travelPlanSiteRspnDto.setStartTime(String.valueOf(travelPlanSiteEntity.getStartTime()));
+            travelPlanSiteRspnDto.setEndTime(String.valueOf(travelPlanSiteEntity.getEndTime()));
 
             SiteBasicInfoRspnDto siteBasicInfoRspnDto = siteService.getSiteBasicRepresentation(siteEntity.getId());
-            siteRspnDto.setSiteBasicInfoRspnDto(siteBasicInfoRspnDto);
+            travelPlanSiteRspnDto.setSiteBasicInfoRspnDto(siteBasicInfoRspnDto);
 
-            sites.add(siteRspnDto);
+            sites.add(travelPlanSiteRspnDto);
         }
 
         sites.sort(Comparator.comparing(TravelPlanSiteRspnDto::getStartTime));

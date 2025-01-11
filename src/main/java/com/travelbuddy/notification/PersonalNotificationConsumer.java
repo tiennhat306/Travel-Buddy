@@ -415,7 +415,6 @@ public class PersonalNotificationConsumer {
             }
         } catch (Exception e) {
             log.error("Failed to handle notification", e);
-            return;
         }
     }
 }
