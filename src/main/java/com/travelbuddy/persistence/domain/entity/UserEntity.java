@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
-@ToString(exclude = {"siteReviews", "reviewReactions", "travelPlans", "siteEntities", "siteReactions", "reports"})
+@ToString(exclude = {"siteReviews", "reviewReactions", "travelPlans", "siteEntities", "siteReactions", "reports", "avatar"})
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
